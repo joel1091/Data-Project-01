@@ -1,0 +1,8 @@
+Centros Educativos: https://valencia.opendatasoft.com/explore/dataset/centros-educativos-en-valencia/export/
+
+CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/centros-educativos-en-valencia/exports/csv?lang=es&timezone=Europe%2FBerlin&use_labels=true&delimiter=%3B
+
+GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/centros-educativos-en-valencia/exports/geojson?lang=es&timezone=Europe%2FBerlin
+
+
+ESTE DB SE PUEDE ENLAZAR CON PERSONAS QUE TENGAN O QUIERAN HIJOS, ENTRE OTROS.
