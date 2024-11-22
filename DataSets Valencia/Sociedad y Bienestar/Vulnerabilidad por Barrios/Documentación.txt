@@ -1,0 +1,8 @@
+Vulnerabilidad por barrios: https://valencia.opendatasoft.com/explore/dataset/vulnerabilidad-por-barrios/export/?dataChart=eyJxdWVyaWVzIjpbeyJjb25maWciOnsiZGF0YXNldCI6InZ1bG5lcmFiaWxpZGFkLXBvci1iYXJyaW9zIiwib3B0aW9ucyI6e319LCJjaGFydHMiOlt7ImFsaWduTW9udGgiOnRydWUsInR5cGUiOiJjb2x1bW4iLCJmdW5jIjoiQVZHIiwieUF4aXMiOiJjb2RiYXIiLCJzY2llbnRpZmljRGlzcGxheSI6dHJ1ZSwiY29sb3IiOiIjNjZjMmE1In1dLCJ4QXhpcyI6ImNvZGJhciIsIm1heHBvaW50cyI6NTAsInNvcnQiOiIifV0sInRpbWVzY2FsZSI6IiIsImRpc3BsYXlMZWdlbmQiOnRydWUsImFsaWduTW9udGgiOnRydWV9
+
+CSV ->https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/vulnerabilidad-por-barrios/exports/csv?lang=es&timezone=Europe%2FBerlin&use_labels=true&delimiter=%3B
+
+GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/vulnerabilidad-por-barrios/exports/geojson?lang=es&timezone=Europe%2FBerlin
+
+
+Esta capa contiene el índice de vulnerabilidad en equipamientos, demografía, socioeconomía y global de cada uno de los barrios de la ciudad de Valencia en 2021
