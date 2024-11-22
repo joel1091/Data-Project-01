@@ -6,3 +6,6 @@ GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/a
 
 
 ESTE DATA SET ES MUY POBLADO Y VA CON LAG
+
+
+EL GEOJSON DE ESTE PESA MUCHÍSIMO, ASÍ QUE HAY QUE DESCARGARLO DEL LINK SI LO QUERÉIS VER
