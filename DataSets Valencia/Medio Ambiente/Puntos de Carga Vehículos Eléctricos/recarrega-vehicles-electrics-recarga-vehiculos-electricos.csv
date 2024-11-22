@@ -1,0 +1,15 @@
+﻿objectid;PROYECTO;LOCALIZACIÓN;ESTADO;geo_shape;geo_point_2d
+3;EDUSI;C/ Eugenia Viñes, frente Hotel Las Arenas;En servicio;"{""coordinates"": [-0.3247386084075454, 39.46582521230022], ""type"": ""Point""}";39.46582521230022, -0.3247386084075454
+1;EDUSI;C/ Acequia de la cadena con c/ Cavite;En servicio;"{""coordinates"": [-0.3261421778292661, 39.47469845405051], ""type"": ""Point""}";39.47469845405051, -0.3261421778292661
+4;EMT;Av. Profesor López Piñero cruce con c/ Ricardo Muñoz Suay;En servicio;"{""coordinates"": [-0.3540839912992437, 39.45451520260029], ""type"": ""Point""}";39.45451520260029, -0.3540839912992437
+7;RED.ES/AYTO;Av. Pío XXII junto Expo Hotel;En Ejecución;"{""coordinates"": [-0.39118596060372834, 39.4793779895784], ""type"": ""Point""}";39.4793779895784, -0.39118596060372834
+8;RED.ES/AYTO;Paseo de la Alameda-Plaza Zaragoza, junto 'Palau de la Música';En Ejecución;"{""coordinates"": [-0.36058741245924164, 39.46740541171785], ""type"": ""Point""}";39.46740541171785, -0.36058741245924164
+11;RED.ES/AYTO;Paseo de la Alameda con c/ Menorca;En Ejecución;"{""coordinates"": [-0.3480420948719542, 39.45673508273535], ""type"": ""Point""}";39.45673508273535, -0.3480420948719542
+12;RED.ES/AYTO;C/ Santa Genoveva Torres, junto C.C. Arena;En Ejecución;"{""coordinates"": [-0.36147457159664514, 39.49462088772935], ""type"": ""Point""}";39.49462088772935, -0.36147457159664514
+13;RED.ES/AYTO;Av. Gaspar Aguilar;En Ejecución;"{""coordinates"": [-0.3933513412666401, 39.45213954118982], ""type"": ""Point""}";39.45213954118982, -0.3933513412666401
+5;EMT;Chaflán de C/ Pintor Stolz con c/ Luis Lamarca;En servicio;"{""coordinates"": [-0.40437286028140346, 39.470534710317835], ""type"": ""Point""}";39.470534710317835, -0.40437286028140346
+6;EMT;Av. Fernando Abril Martorell, junto paso de cebra delante del Nuevo Hospital Universitario 'LA FE';En servicio;"{""coordinates"": [-0.3750588375837109, 39.44452100653797], ""type"": ""Point""}";39.44452100653797, -0.3750588375837109
+10;RED.ES/AYTO;Av. Blasco Ibañez con Plaza Legión Española;En Ejecución;"{""coordinates"": [-0.36469740905983217, 39.47853417648222], ""type"": ""Point""}";39.47853417648222, -0.36469740905983217
+14;RED.ES/AYTO;C/ Camp de Túria frente Hotel Sorolla;En Ejecución;"{""coordinates"": [-0.4018103172474334, 39.49515847336347], ""type"": ""Point""}";39.49515847336347, -0.4018103172474334
+2;EDUSI;C/ Martí Grajales,nº2 bis con Mercado del Cabanyal;En servicio;"{""coordinates"": [-0.33394836022041274, 39.46826241004537], ""type"": ""Point""}";39.46826241004537, -0.33394836022041274
+9;RED.ES/AYTO;Estación Joaquín Sorolla con c/ San Vicente;En Ejecución;"{""coordinates"": [-0.3815272131277639, 39.46072041785228], ""type"": ""Point""}";39.46072041785228, -0.3815272131277639

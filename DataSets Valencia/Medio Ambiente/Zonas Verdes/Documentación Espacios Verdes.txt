@@ -1,0 +1,6 @@
+Espacios Verdes: https://valencia.opendatasoft.com/explore/dataset/espais-verds-espacios-verdes/export/?location=15,39.48261,-0.36095&basemap=e4bf90&dataChart=eyJxdWVyaWVzIjpbeyJjb25maWciOnsiZGF0YXNldCI6ImVzcGFpcy12ZXJkcy1lc3BhY2lvcy12ZXJkZXMiLCJvcHRpb25zIjp7fX0sImNoYXJ0cyI6W3siYWxpZ25Nb250aCI6dHJ1ZSwidHlwZSI6ImNvbHVtbiIsImZ1bmMiOiJBVkciLCJ5QXhpcyI6Im9iamVjdGlkIiwic2NpZW50aWZpY0Rpc3BsYXkiOnRydWUsImNvbG9yIjoiIzY2YzJhNSJ9XSwieEF4aXMiOiJvYmplY3RpZCIsIm1heHBvaW50cyI6NTAsInNvcnQiOiIifV0sInRpbWVzY2FsZSI6IiIsImRpc3BsYXlMZWdlbmQiOnRydWUsImFsaWduTW9udGgiOnRydWV9
+
+CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/espais-verds-espacios-verdes/exports/csv?lang=es&timezone=Europe%2FBerlin&use_labels=true&delimiter=%3B
+
+GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/espais-verds-espacios-verdes/exports/geojson?lang=es&timezone=Europe%2FBerlin
+
