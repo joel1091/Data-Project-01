@@ -1,0 +1,5 @@
+Carril Bici: https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/itinerarios-ciclistas-itineraris-ciclistes/exports/csv?lang=es&timezone=Europe%2FBerlin&use_labels=true&delimiter=%3B
+
+CSV ->https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/itinerarios-ciclistas-itineraris-ciclistes/exports/csv?lang=es&timezone=Europe%2FBerlin&use_labels=true&delimiter=%3B
+
+GEOJSON ->https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/itinerarios-ciclistas-itineraris-ciclistes/exports/geojson?lang=es&timezone=Europe%2FBerlin
