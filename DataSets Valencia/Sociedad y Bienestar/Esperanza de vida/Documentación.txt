@@ -1,0 +1,6 @@
+https://valencia.opendatasoft.com/explore/dataset/oe_28_esperanza_vida/export/?disjunctive.ano&disjunctive.sexo&disjunctive.distrito
+
+CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/oe_28_esperanza_vida/exports/csv?lang=es&timezone=Europe%2FBerlin&use_labels=true&delimiter=%3B
+
+
+POR SI PODEMOS CREAR POR NUESTRA CUENTA UN TIPO DE ALGORITMO / ECUACIÓN MATEMÁTICA PARA APROXIMAR O SIMULAR LA LOS BARRIOS CHUNGOS

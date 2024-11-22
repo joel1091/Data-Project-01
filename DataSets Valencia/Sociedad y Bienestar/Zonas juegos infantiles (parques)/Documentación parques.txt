@@ -1,0 +1,5 @@
+Zonas juegos infantiles: https://valencia.opendatasoft.com/explore/dataset/zones-jocs-infantils-zona-juegos-infantiles/export/
+
+CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/zones-jocs-infantils-zona-juegos-infantiles/exports/csv?lang=es&timezone=Europe%2FBerlin&use_labels=true&delimiter=%3B
+
+GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/zones-jocs-infantils-zona-juegos-infantiles/exports/geojson?lang=es&timezone=Europe%2FBerlin
