@@ -1,0 +1,8 @@
+Parking: https://valencia.opendatasoft.com/explore/dataset/aparcaments-no-regulats-aparcamientos-no-regulados/export/?dataChart=eyJxdWVyaWVzIjpbeyJjb25maWciOnsiZGF0YXNldCI6ImFwYXJjYW1lbnRzLW5vLXJlZ3VsYXRzLWFwYXJjYW1pZW50b3Mtbm8tcmVndWxhZG9zIiwib3B0aW9ucyI6e319LCJjaGFydHMiOlt7ImFsaWduTW9udGgiOnRydWUsInR5cGUiOiJjb2x1bW4iLCJmdW5jIjoiQVZHIiwieUF4aXMiOiJnaWQiLCJzY2llbnRpZmljRGlzcGxheSI6dHJ1ZSwiY29sb3IiOiIjNjZjMmE1In1dLCJ4QXhpcyI6ImdpZCIsIm1heHBvaW50cyI6NTAsInNvcnQiOiIifV0sInRpbWVzY2FsZSI6IiIsImRpc3BsYXlMZWdlbmQiOnRydWUsImFsaWduTW9udGgiOnRydWV9
+
+CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/aparcaments-no-regulats-aparcamientos-no-regulados/exports/csv?lang=es&timezone=Europe%2FBerlin&use_labels=true&delimiter=%3B
+
+GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/aparcaments-no-regulats-aparcamientos-no-regulados/exports/geojson?lang=es&timezone=Europe%2FBerlin
+
+
+ESTE DATA SET ES MUY POBLADO Y VA CON LAG
