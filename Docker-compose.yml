@@ -31,7 +31,7 @@ services:
     restart: unless-stopped
 
   nifi:
-    image: apache/nifi:latest
+    image: apache/nifi:1.27.0
     container_name: nifi
     restart: always
     ports:
