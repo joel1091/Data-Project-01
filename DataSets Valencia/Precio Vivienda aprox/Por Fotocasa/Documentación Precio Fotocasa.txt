@@ -4,5 +4,6 @@ CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/preci
 
 GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/precio-de-compra-en-fotocasa/exports/geojson?lang=es&timezone=Europe%2FBerlin
 
+JSON-> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/precio-de-compra-en-fotocasa/exports/json?lang=es&timezone=Europe%2FBerlin
 
 LUEGO HAY QUE QUEDARSE CON FOTO CASA O CON IDEALISTA, O HACER ALGUN MODELO DE APROXIMACIÓN

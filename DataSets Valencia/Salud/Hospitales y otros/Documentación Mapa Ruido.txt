@@ -3,3 +3,5 @@ Zonas Verdes: https://valencia.opendatasoft.com/explore/dataset/hospitales/expor
 CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/hospitales/exports/csv?lang=es&timezone=Europe%2FMadrid&use_labels=true&delimiter=%3B
 
 GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/hospitales/exports/geojson?lang=es&timezone=Europe%2FMadrid
+
+JSON-> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/hospitales/exports/json?lang=es&timezone=Europe%2FMadrid

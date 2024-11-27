@@ -4,5 +4,6 @@ CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/bancs
 
 GEOJSON ->https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/bancs-en-via-publica-bancos-en-via-publica/exports/geojson?lang=es&timezone=Europe%2FBerlin
 
+JSON-> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/bancs-en-via-publica-bancos-en-via-publica/exports/json?lang=es&timezone=Europe%2FBerlin
 
 IMPORTANTE SI QUEREMOS HACER UNA BUSQUEDA PARA UNA PERSONA MAYOR, ENLAZARLO (EN LA FÓRMULA/LÓGICA) CON LOS CENTROS DE MAYORES, ETC PORQ LAS PERSONAS MAYORES NECESITAN TENER UN CAJERO CERCA, YA QUE ESTÁN ACOSTUMBRADOS A COMPRAR EN DINERO FÍSICO.

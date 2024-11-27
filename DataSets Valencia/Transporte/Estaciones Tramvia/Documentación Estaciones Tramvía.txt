@@ -3,3 +3,5 @@ Estaciones Tramvia: https://valencia.opendatasoft.com/explore/dataset/fgv-estaci
 CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/fgv-estacions-estaciones/exports/csv?lang=es&timezone=Europe%2FBerlin&use_labels=true&delimiter=%3B
 
 GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/fgv-estacions-estaciones/exports/geojson?lang=es&timezone=Europe%2FBerlin
+
+JSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/fgv-estacions-estaciones/exports/json?lang=es&timezone=Europe%2FBerlin

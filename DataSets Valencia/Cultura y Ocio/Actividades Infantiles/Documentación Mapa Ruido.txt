@@ -4,5 +4,6 @@ CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/zones
 
 GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/zones-dactivitats-zonas-de-actividades/exports/geojson?lang=es&timezone=Europe%2FBerlin
 
+JSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/zones-dactivitats-zonas-de-actividades/exports/json?lang=es&timezone=Europe%2FBerlin
 
 ESTE DB SE ENLAZA CON NIÑOS, OBV
