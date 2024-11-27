@@ -4,3 +4,4 @@ CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/espai
 
 GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/espais-verds-espacios-verdes/exports/geojson?lang=es&timezone=Europe%2FBerlin
 
+JSON-> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/espais-verds-espacios-verdes/exports/json?lang=es&timezone=Europe%2FBerlin

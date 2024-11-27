@@ -4,5 +4,6 @@ CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/preci
 
 GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/precio-de-compra-en-idealista/exports/geojson?lang=es&timezone=Europe%2FBerlin
 
+JSON-> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/precio-de-compra-en-idealista/exports/json?lang=es&timezone=Europe%2FBerlin
 
 ESTA POR BARRIOS CREO, LUEGO HAY QUE SEGMENTARLO Y TAL

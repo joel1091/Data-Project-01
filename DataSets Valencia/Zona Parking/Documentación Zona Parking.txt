@@ -4,6 +4,7 @@ CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/aparc
 
 GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/aparcaments-no-regulats-aparcamientos-no-regulados/exports/geojson?lang=es&timezone=Europe%2FBerlin
 
+JSON-> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/aparcaments-no-regulats-aparcamientos-no-regulados/exports/json?lang=es&timezone=Europe%2FBerlin
 
 ESTE DATA SET ES MUY POBLADO Y VA CON LAG
 

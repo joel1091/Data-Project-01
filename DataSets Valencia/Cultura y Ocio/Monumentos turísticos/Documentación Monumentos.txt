@@ -4,3 +4,4 @@ CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/monum
 
 GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/monuments-turistics-monumentos-turisticos/exports/geojson?lang=es&timezone=Europe%2FBerlin
 
+JSON-> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/monuments-turistics-monumentos-turisticos/exports/json?lang=es&timezone=Europe%2FBerlin
