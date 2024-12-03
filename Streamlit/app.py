@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from pymongo import MongoClient
-import folium
+import folium #Para pintar el mapa de folium
 from streamlit_folium import st_folium
 
 # Conexión a MongoDB
