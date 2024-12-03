@@ -59,3 +59,7 @@ st.title("Mapa de puntos de varias colecciones")
 st.markdown("Mapa que muestra los puntos de las colecciones con coordenadas en MongoDB.")
 st.write("Haz clic en los puntos para ver a qué colección pertenecen.")
 st_folium(m, width=700, height=500)
+
+Actividades_Infantiles, Cajeros, Carril_Bici, Centros_Discapacitados, Centros_Educativos, Centros_Mayores, Centros_Migrantes,
+Hospitales, Mapa_Ruido, Monumentos_historicos, Parking_Movilidad_Reducida, Precio_Fotocasa, Precio_Idealista, Puntos_Carga_ElectricCar,
+Tramvia, ValenBisi, Vulnerabilidad_Barrios, Zonas_Verdes, Parques, EMT
