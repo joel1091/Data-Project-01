@@ -55,7 +55,7 @@ services:
       - 8443:8443
     environment:
       - SINGLE_USER_CREDENTIALS_USERNAME=admin
-      - SINGLE_USER_CREDENTIALS_PASSWORD=ctsBtRBKHRAx69EqUghvvgEvjnaLjFEB
+      - SINGLE_USER_CREDENTIALS_PASSWORD=admin
     volumes:
       - ./data:/tmp/data
     user: "0:0"
