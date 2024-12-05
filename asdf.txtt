@@ -1,0 +1,11 @@
+CREATE TABLE public.actividades_infantiles (
+    id_falla integer NOT NULL,
+    objectid integer NOT NULL,
+	geo_shape VARCHAR(999999),
+	geo_point_2d VARCHAR(999999)
+);
+	--geo_shape GEOMETRY(Point, 4326),
+	--geo_point_2d GEOGRAPHY(Point, 4326)
+
+
+SELECT * FROM actividades_infantiles;

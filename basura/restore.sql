@@ -4,12 +4,14 @@ CREATE DATABASE data_project_01
 
 --PRIMERA CARPETA->CULTURA Y OCIO
 
-CREATE TABLE public.zones-dactivitats-zonas-de-actividades (
-    Id. Falla integer NOT NULL,
-    OBJECTID integer NOT NULL,
+CREATE TABLE public.Actividades_Infantiles (
+    id_falla integer NOT NULL,
+    objectid integer NOT NULL,
     geo_shape GEOMETRY(),
     geo_point_2d GEOGRAPHY()
 )
+
+INSERT INTO Actividades_Infantiles (id_falla, objectid,geo_shape,geo_point_2d) VALUES ('${id_falla}', '${objectid}','${geo_shape}', '${geo_point_2d}')
 
 CREATE TABLE public.centros-educativos-en-valencia (
     Geo Point GEOGRAPHY(),--------------
