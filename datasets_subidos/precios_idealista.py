@@ -11,15 +11,17 @@ POSTGRES_CONFIG = {
     "password": "Welcome01"
 }
 
-# URL del archivo JSON (ajusta a tu URL)
+# URL del archivo JSON
 JSON_URL = "https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/precio-de-compra-en-idealista/records?select=*&limit=88"
 
 def main():
     try:
         # Conexión a PostgreSQL
+        print("Conectando a la base de datos...")
         conn = psycopg2.connect(**POSTGRES_CONFIG)
         conn.autocommit = True
         cursor = conn.cursor()
+        print("Conexión establecida.")
 
         # Verificar si PostGIS está habilitado
         cursor.execute("SELECT PostGIS_Version();")
@@ -28,23 +30,25 @@ def main():
             return
 
         # Crear la tabla si no existe
+        print("Creando tabla idealista...")
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS public."idealista" (
-            "Geo Point" GEOMETRY,
-            "Geo Shape" GEOGRAPHY,
-            "coddistbar" INTEGER,
-            "BARRIO" VARCHAR(255),
-            "codbarrio" INTEGER,
-            "coddistrit" INTEGER,
-            "DISTRITO" VARCHAR(255),
-            "Precio_2022 (Euros/m2)" INTEGER,
-            "Precio_2010 (Euros/m2)" INTEGER,
-            "Max_historico (Euros/m2)" INTEGER,
-            "Año_Max_Hist" INTEGER,
-            "Fecha_creacion" DATE
+            objectid INTEGER,
+            geo_point_2d GEOGRAPHY,
+            geo_shape GEOMETRY,
+            coddistbar INTEGER,
+            barrio VARCHAR(255),
+            codbarrio INTEGER,
+            coddistrit INTEGER,
+            distrito VARCHAR(255),
+            precio_2022_euros_m2 NUMERIC,
+            precio_2010_euros_m2 NUMERIC,
+            max_historico_euros_m2 NUMERIC,
+            ano_max_hist INTEGER,
+            fecha_creacion DATE
         );
         """)
-        print("Tabla creada exitosamente o ya existe.")
+        print("Tabla idealista creada exitosamente o ya existe.")
 
         # Descargar los datos desde la URL
         print("Descargando datos desde la URL...")
@@ -52,40 +56,61 @@ def main():
         if response.status_code != 200:
             print(f"Error al descargar los datos: {response.status_code}")
             return
+        
         data = response.json()
-        print("Datos descargados correctamente.")
+        if not isinstance(data, dict) or "records" not in data:
+            print(f"Estructura del JSON no esperada: {data.keys() if isinstance(data, dict) else type(data)}")
+            return
+        
+        registros = data["records"]
+        print(f"Datos descargados correctamente. Número de registros: {len(registros)}")
 
         # Insertar datos en la tabla
-        for item in data:
-            geo_point_2d = item.get("geo_point_2d", None)
-            geo_shape = item.get("geo_shape", {}).get("geometry", None)
-            coddistbar = item.get("coddistbar")
-            barrio = item.get("barrio")
-            codbarrio = item.get("codbarrio")
-            coddistrit = item.get("coddistrit")
-            distrito = item.get("distrito")
-            precio_2022 = item.get("precio_2022_euros_m2")
-            precio_2010 = item.get("precio_2010_euros_m2")
-            max_historico = item.get("max_historico_euros_m2")
-            ano_max_hist = item.get("ano_max_hist")
-            fecha_creacion = item.get("fecha_creacion")
+        for item in registros:
+            fields = item.get("fields", {})
+            if not fields:
+                print(f"Advertencia: Registro sin campos válidos: {item}")
+                continue
 
-            # Procesar geometrías
+            # Extracción segura de los campos
+            objectid = fields.get("_id")
+            geo_point_2d = fields.get("geo_point_2d")
+            geo_shape = fields.get("geo_shape", {}).get("geometry", None)
+            coddistbar = fields.get("coddistbar")
+            barrio = fields.get("barrio")
+            codbarrio = fields.get("codbarrio")
+            coddistrit = fields.get("coddistrit")
+            distrito = fields.get("distrito")
+            precio_2022_euros_m2 = fields.get("precio_2022_euros_m2")
+            precio_2010_euros_m2 = fields.get("precio_2010_euros_m2")
+            max_historico_euros_m2 = fields.get("max_historico_euros_m2")
+            ano_max_hist = fields.get("ano_max_hist")
+            fecha_creacion = fields.get("fecha_creacion")
+
+            # Validación de geometrías
+            point_wkt = None
+            if geo_point_2d and isinstance(geo_point_2d, list) and len(geo_point_2d) == 2:
+                lon, lat = geo_point_2d
+                point_wkt = f"POINT({lon} {lat})"
             geojson_str = json.dumps(geo_shape) if geo_shape else None
-            point_wkt = f"POINT({geo_point_2d['lon']} {geo_point_2d['lat']})" if geo_point_2d else None
 
-            # Insertar registro
-            cursor.execute("""
-            INSERT INTO public."idealista" 
-            ("Geo Point", "Geo Shape", coddistbar, "BARRIO", codbarrio, coddistrit, "DISTRITO", 
-             "Precio_2022 (Euros/m2)", "Precio_2010 (Euros/m2)", "Max_historico (Euros/m2)", 
-             "Año_Max_Hist", "Fecha_creacion") 
-            VALUES (ST_GeogFromText(%s), ST_GeomFromGeoJSON(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (point_wkt, geojson_str, coddistbar, barrio, codbarrio, coddistrit, distrito,
-                  precio_2022, precio_2010, max_historico, ano_max_hist, fecha_creacion))
-            print(f"Insertado registro con coddistbar={coddistbar}, barrio={barrio}")
+            # Depuración: Imprimir datos a insertar
+            print(f"Procesando registro: objectid={objectid}, barrio={barrio}, distrito={distrito}")
 
-        print("Todos los datos fueron insertados correctamente.")
+            # Intentar la inserción en la base de datos
+            try:
+                cursor.execute("""
+                INSERT INTO public."idealista" 
+                (objectid, geo_point_2d, geo_shape, coddistbar, barrio, codbarrio, coddistrit, distrito, 
+                 precio_2022_euros_m2, precio_2010_euros_m2, max_historico_euros_m2, ano_max_hist, fecha_creacion) 
+                VALUES (ST_GeogFromText(%s), ST_GeomFromGeoJSON(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (point_wkt, geojson_str, coddistbar, barrio, codbarrio, coddistrit, distrito,
+                      precio_2022_euros_m2, precio_2010_euros_m2, max_historico_euros_m2, ano_max_hist, fecha_creacion))
+                print(f"Insertado registro con barrio={barrio}, distrito={distrito}")
+            except Exception as e:
+                print(f"Error al insertar registro con objectid={objectid}: {e}")
+
+        print("Todos los datos fueron procesados correctamente.")
 
     except Exception as e:
         print(f"Error inesperado: {e}")

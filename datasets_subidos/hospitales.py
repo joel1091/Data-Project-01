@@ -11,7 +11,7 @@ POSTGRES_CONFIG = {
     "password": "Welcome01"
 }
 
-# URL del archivo JSON (ajusta según corresponda)
+# URL del archivo JSON
 JSON_URL = "https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/hospitales/exports/json?lang=es&timezone=Europe%2FMadrid"
 
 def main():
@@ -32,18 +32,18 @@ def main():
         CREATE TABLE IF NOT EXISTS public."hospitales" (
             geo_point_2d GEOGRAPHY,
             geo_shape GEOMETRY,
-            Nombre VARCHAR(255),
-            Financiaci VARCHAR(255),
-            Tipo VARCHAR(255),
-            Camas INTEGER,
-            Direccion VARCHAR(255),
-            Fecha DATE,
-            Barrio VARCHAR(255),
+            nombre VARCHAR(255),
+            financiaci VARCHAR(255),
+            tipo VARCHAR(255),
+            camas INTEGER,
+            direccion VARCHAR(255),
+            fecha DATE,
+            barrio VARCHAR(255),
             codbarrio INTEGER,
             coddistbar INTEGER,
             coddistrit INTEGER,
-            X INTEGER,
-            Y INTEGER
+            x NUMERIC,
+            y NUMERIC
         );
         """)
         print("Tabla creada exitosamente o ya existe.")
@@ -62,32 +62,40 @@ def main():
             # Extraer campos principales
             geo_point_2d = item.get("geo_point_2d", None)
             geo_shape = item.get("geo_shape", {}).get("geometry", None)
-            nombre = item.get("Nombre")
-            financiaci = item.get("Financiaci")
-            tipo = item.get("Tipo")
-            camas = item.get("Camas")
-            direccion = item.get("Direccion")
-            fecha = item.get("Fecha")
-            barrio = item.get("Barrio")
+            nombre = item.get("nombre")
+            financiaci = item.get("financiaci")
+            tipo = item.get("tipo")
+            camas = item.get("camas")
+            direccion = item.get("direccion")
+            fecha = item.get("fecha")
+            barrio = item.get("barrio")
             codbarrio = item.get("codbarrio")
             coddistbar = item.get("coddistbar")
             coddistrit = item.get("coddistrit")
-            x = item.get("X")
-            y = item.get("Y")
+            x = item.get("x")
+            y = item.get("y")
 
             # Procesar geometrías
             geojson_str = json.dumps(geo_shape) if geo_shape else None
-            point_wkt = f"POINT({geo_point_2d['lon']} {geo_point_2d['lat']})" if geo_point_2d else None
+            point_wkt = None
+            if geo_point_2d:
+                lon = geo_point_2d.get("lon")
+                lat = geo_point_2d.get("lat")
+                if lon is not None and lat is not None:
+                    point_wkt = f"POINT({lon} {lat})"
 
             # Insertar registro en la tabla
-            cursor.execute("""
-            INSERT INTO public."hospitales" 
-            (geo_point_2d, geo_shape, Nombre, Financiaci, Tipo, Camas, Direccion, Fecha, 
-            Barrio, codbarrio, coddistbar, coddistrit, X, Y) 
-            VALUES (ST_GeogFromText(%s), ST_GeomFromGeoJSON(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (point_wkt, geojson_str, nombre, financiaci, tipo, camas, direccion, fecha, 
-                  barrio, codbarrio, coddistbar, coddistrit, x, y))
-            print(f"Insertado registro con nombre={nombre}")
+            try:
+                cursor.execute("""
+                INSERT INTO public."hospitales" 
+                (geo_point_2d, geo_shape, nombre, financiaci, tipo, camas, direccion, fecha, 
+                 barrio, codbarrio, coddistbar, coddistrit, x, y) 
+                VALUES (ST_GeogFromText(%s), ST_GeomFromGeoJSON(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (point_wkt, geojson_str, nombre, financiaci, tipo, camas, direccion, fecha, 
+                      barrio, codbarrio, coddistbar, coddistrit, x, y))
+                print(f"Insertado registro con nombre={nombre}")
+            except Exception as e:
+                print(f"Error al insertar registro con nombre={nombre}: {e}")
 
         print("Todos los datos fueron insertados correctamente.")
 
