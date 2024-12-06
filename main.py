@@ -1,6 +1,8 @@
 import os
 import subprocess
-import json
+import sys
+import psycopg2
+from psycopg2 import sql
 
 # Ruta del archivo de configuración
 CONFIG_FILE = "config.py"
@@ -43,6 +45,55 @@ def load_config():
         "password": config.password,
     }
 
+def create_database_if_not_exists(config):
+    """Crea la base de datos si no existe y habilita PostGIS."""
+    try:
+        # Conectar al servidor PostgreSQL sin especificar la base de datos
+        connection = psycopg2.connect(
+            host=config["host"],
+            port=config["port"],
+            user=config["user"],
+            password=config["password"],
+            database="postgres"  # Conexión inicial al servidor
+        )
+        connection.autocommit = True
+        cursor = connection.cursor()
+
+        # Verificar si la base de datos existe
+        cursor.execute("SELECT 1 FROM pg_database WHERE datname = %s", (config["database"],))
+        exists = cursor.fetchone()
+
+        if not exists:
+            # Crear la base de datos
+            cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(config["database"])))
+            print(f"Base de datos '{config['database']}' creada con éxito.")
+        else:
+            print(f"La base de datos '{config['database']}' ya existe.")
+
+        # Conectar a la base de datos creada para habilitar PostGIS
+        db_connection = psycopg2.connect(
+            host=config["host"],
+            port=config["port"],
+            database=config["database"],
+            user=config["user"],
+            password=config["password"]
+        )
+        db_cursor = db_connection.cursor()
+
+        # Habilitar PostGIS
+        db_cursor.execute("CREATE EXTENSION IF NOT EXISTS postgis;")
+        db_connection.commit()
+        print(f"Extensión PostGIS habilitada en la base de datos '{config['database']}'.")
+
+        db_cursor.close()
+        db_connection.close()
+
+        cursor.close()
+        connection.close()
+    except Exception as e:
+        print(f"Error al verificar/crear la base de datos: {e}")
+        sys.exit(1)
+
 def execute_scripts(scripts_dir, config):
     """Ejecuta todos los archivos .py en el directorio especificado."""
     # Listar todos los archivos .py en la carpeta
@@ -79,6 +130,10 @@ def main():
         print("Cargando configuración...")
         config = load_config()
         print("Configuración cargada con éxito.")
+
+        # Crear la base de datos si no existe y habilitar PostGIS
+        print("Verificando/creando la base de datos y habilitando PostGIS...")
+        create_database_if_not_exists(config)
 
         # Directorio donde están los scripts
         scripts_dir = "datasets_subidos"

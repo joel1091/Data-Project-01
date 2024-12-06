@@ -5,45 +5,39 @@ services:
     container_name: postgres_container
     image: postgis/postgis:12-3.1
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Welcome01}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Welcome01
       PGDATA: /data/postgres
     volumes:
       - postgres:/data/postgres
     ports:
       - "5432:5432"
     restart: unless-stopped
+    networks:
+      - app-network
 
   pgadmin:
     container_name: pgadmin_container
     image: dpage/pgadmin4:4.16
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
+      PGADMIN_DEFAULT_PASSWORD: admin
     volumes:
       - pgadmin:/var/lib/pgadmin
+      - ./pgadmin-servers.json:/pgadmin4/servers.json
     ports:
-      - "${PGADMIN_PORT:-5050}:80"
+      - "5050:80"
     restart: unless-stopped
-
-  nifi:
-    image: apache/nifi:1.27.0
-    container_name: nifi
-    restart: always
-    ports:
-      - 8443:8443
-    environment:
-      - SINGLE_USER_CREDENTIALS_USERNAME=admin
-      - SINGLE_USER_CREDENTIALS_PASSWORD=ctsBtRBKHRAx69EqUghvvgEvjnaLjFEB
-    volumes:
-      - ./data:/tmp/data
-    user: "0:0"
+    networks:
+      - app-network
+    entrypoint: >
+      sh -c "sleep 10 &&
+      /entrypoint.sh"
 
 volumes:
   postgres:
   pgadmin:
-  data:
-  
+
 networks:
   app-network:
     driver: bridge
