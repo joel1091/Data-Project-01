@@ -1,3 +1,7 @@
+os
+subprocess
+sys
+psycopg2
 pandas
 requests
 psycopg2-binary
