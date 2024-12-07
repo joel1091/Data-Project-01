@@ -5,3 +5,4 @@ sqlalchemy
 streamlit  # Corregido desde "stremalit"
 folium
 streamlit-folium
+psycopg2
