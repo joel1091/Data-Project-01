@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import time
 import psycopg2
 from psycopg2 import sql
 
@@ -45,10 +46,33 @@ def load_config():
         "password": config.password,
     }
 
+def wait_for_postgres(config, retries=10, delay=5):
+    """Reintenta conectarse a PostgreSQL hasta que esté listo."""
+    for attempt in range(retries):
+        try:
+            print(f"Intentando conectar a PostgreSQL (intento {attempt + 1}/{retries})...")
+            conn = psycopg2.connect(
+                host=config["host"],
+                port=config["port"],
+                user=config["user"],
+                password=config["password"],
+                database="postgres"  # Conexión inicial
+            )
+            conn.close()
+            print("PostgreSQL está listo.")
+            return
+        except psycopg2.OperationalError as e:
+            print(f"PostgreSQL no está listo: {e}")
+            time.sleep(delay)
+
+    print("Error: PostgreSQL no estuvo listo a tiempo.")
+    sys.exit(1)
+
 def create_database_if_not_exists(config):
     """Crea la base de datos si no existe y habilita PostGIS."""
+    wait_for_postgres(config)  # Espera hasta que PostgreSQL esté listo
     try:
-        # Conectar al servidor PostgreSQL sin especificar la base de datos
+        print("Conectando al servidor PostgreSQL...")
         connection = psycopg2.connect(
             host=config["host"],
             port=config["port"],
@@ -58,19 +82,26 @@ def create_database_if_not_exists(config):
         )
         connection.autocommit = True
         cursor = connection.cursor()
+        print("Conexión establecida al servidor PostgreSQL.")
 
         # Verificar si la base de datos existe
+        print(f"Verificando si la base de datos '{config['database']}' existe...")
         cursor.execute("SELECT 1 FROM pg_database WHERE datname = %s", (config["database"],))
         exists = cursor.fetchone()
 
         if not exists:
             # Crear la base de datos
+            print(f"La base de datos '{config['database']}' no existe. Creándola...")
             cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(config["database"])))
             print(f"Base de datos '{config['database']}' creada con éxito.")
         else:
             print(f"La base de datos '{config['database']}' ya existe.")
 
+        cursor.close()
+        connection.close()
+
         # Conectar a la base de datos creada para habilitar PostGIS
+        print(f"Conectando a la base de datos '{config['database']}' para habilitar PostGIS...")
         db_connection = psycopg2.connect(
             host=config["host"],
             port=config["port"],
@@ -88,8 +119,6 @@ def create_database_if_not_exists(config):
         db_cursor.close()
         db_connection.close()
 
-        cursor.close()
-        connection.close()
     except Exception as e:
         print(f"Error al verificar/crear la base de datos: {e}")
         sys.exit(1)

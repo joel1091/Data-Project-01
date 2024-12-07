@@ -1,8 +1,7 @@
-os
-subprocess
-sys
-psycopg2
 pandas
 requests
 psycopg2-binary
 sqlalchemy
+streamlit  # Corregido desde "stremalit"
+folium
+streamlit-folium

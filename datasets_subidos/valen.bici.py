@@ -5,7 +5,7 @@ from datetime import datetime
 
 # Configuración de la conexión a PostgreSQL
 POSTGRES_CONFIG = {
-    "host": "localhost",
+    "host": "postgres",
     "port": 5432,
     "database": "data_project",
     "user": "postgres",
