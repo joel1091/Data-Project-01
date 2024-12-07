@@ -2,15 +2,17 @@ import streamlit as st
 import pydeck as pdk
 from colegios import load_data as load_colegios_data, assign_colors
 from cajeros import load_atm_data
-from centros_mayores import load_centros_mayores_data  # Importamos los centros de mayores
+from centros_mayores import load_centros_mayores_data
+from discapacidad import load_discapacidad_data  # Importación de la función para discapacidad
 
-# Función para generar un indicador de color
+# Función para generar la leyenda de colores de las capas
 def color_legend(capas_seleccionadas):
     legend_html = ""
     colores = {
-        "Colegios": "blue",  # Color azul para colegios
-        "Cajeros": "pink",   # Color rosa para cajeros
-        "Centros de Mayores": "black"  # Color negro para centros de mayores
+        "Colegios": "blue",          # Azul para colegios
+        "Cajeros": "pink",           # Rosa para cajeros
+        "Centros de Mayores": "black", # Negro para centros de mayores
+        "Discapacidad": "purple"     # Morado para discapacidad
     }
     for capa in capas_seleccionadas:
         if capa in colores:
@@ -24,14 +26,14 @@ def color_legend(capas_seleccionadas):
 
 # Aplicación principal
 def main():
-    st.title("Mapa Interactivo: Colegios, Cajeros y Centros de Mayores en Valencia")
+    st.title("Mapa Interactivo: Colegios, Cajeros, Centros de Mayores y Discapacidad")
 
     # Panel izquierdo: Configuración general
     st.sidebar.title("Opciones Generales")
     capas = st.sidebar.multiselect(
         "Selecciona las capas que deseas ver:",
-        options=["Colegios", "Cajeros", "Centros de Mayores"],
-        default=["Colegios", "Cajeros", "Centros de Mayores"]
+        options=["Colegios", "Cajeros", "Centros de Mayores", "Discapacidad"],  # Incluye todas las capas
+        default=["Colegios", "Cajeros", "Centros de Mayores", "Discapacidad"]
     )
 
     # Panel derecho: Configuración para colegios
@@ -45,17 +47,19 @@ def main():
     if tiene_hijos == "Sí":
         regimen_opcion = st.sidebar.selectbox(
             "¿A qué tipo de colegio le gustaría llevar a su hijo?",
-            ("CONCERTADO", "PÚBLICO", "PRIVADO")
+            ("Todos los tipos", "CONCERTADO", "PÚBLICO", "PRIVADO")
         )
 
-    # Cargar datos
+    # Cargar los datos de las capas seleccionadas
     colegios_data = load_colegios_data() if "Colegios" in capas and tiene_hijos == "Sí" else None
     cajeros_data = load_atm_data() if "Cajeros" in capas else None
     centros_mayores_data = load_centros_mayores_data() if "Centros de Mayores" in capas else None
+    discapacidad_data = load_discapacidad_data() if "Discapacidad" in capas else None
 
-    # Filtrar datos de colegios si se selecciona "Sí" en la pregunta inicial
+    # Filtrar los colegios si la opción "Sí" fue seleccionada
     if colegios_data is not None:
-        colegios_data = colegios_data[colegios_data["regimen"] == regimen_opcion]
+        if regimen_opcion != "Todos los tipos":  # Filtrar solo si no se selecciona "Todos los tipos"
+            colegios_data = colegios_data[colegios_data["regimen"] == regimen_opcion]
         colegios_data = assign_colors(colegios_data)
 
     # Configurar el estado inicial del mapa
@@ -76,7 +80,6 @@ def main():
             get_position=["lon", "lat"],
             get_color="color",  # Usar la columna de colores asignados
             radius_min_pixels=5,  # Tamaño constante de los puntos
-            radius_max_pixels=5,
             pickable=True
         )
         layers.append(colegios_layer)
@@ -100,17 +103,29 @@ def main():
             data=centros_mayores_data,
             get_position=["lon", "lat"],
             get_color=[96, 96, 96, 255],  # Gris oscuro con opacidad máxima
-            radius_min_pixels=5,  # Tamaño constante de los puntos
+            radius_min_pixels=8,  # Tamaño constante de los puntos
             pickable=True
         )
         layers.append(centros_mayores_layer)
 
+    # Crear capa de discapacidad
+    if discapacidad_data is not None and not discapacidad_data.empty:
+        discapacidad_layer = pdk.Layer(
+            "ScatterplotLayer",
+            data=discapacidad_data,
+            get_position=["lon", "lat"],
+            get_color=[128, 0, 128, 255],  # Morado
+            radius_min_pixels=8,  # Tamaño constante de los puntos
+            pickable=True
+        )
+        layers.append(discapacidad_layer)
+
     # Configurar el tooltip dinámico
     tooltip = {
         "html": """
-        <b>Nombre o Modelo:</b> {nombre}<br>
-        <b>Teléfono:</b> {telefono}<br>
-        <b>Código de Vía:</b> {codvia}<br>
+        <b>Nombre:</b> {nombre}<br>
+        <b>Dirección:</b> {direccion}<br>
+        <b>Teléfono:</b> {telefono}
         """,
         "style": {"backgroundColor": "black", "color": "white"}
     }
