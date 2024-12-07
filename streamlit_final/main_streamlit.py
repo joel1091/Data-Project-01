@@ -2,13 +2,15 @@ import streamlit as st
 import pydeck as pdk
 from colegios import load_data as load_colegios_data, assign_colors
 from cajeros import load_atm_data
+from centros_mayores import load_centros_mayores_data  # Importamos los centros de mayores
 
 # Función para generar un indicador de color
 def color_legend(capas_seleccionadas):
     legend_html = ""
     colores = {
         "Colegios": "blue",  # Color azul para colegios
-        "Cajeros": "pink"    # Color rosa para cajeros
+        "Cajeros": "pink",   # Color rosa para cajeros
+        "Centros de Mayores": "black"  # Color negro para centros de mayores
     }
     for capa in capas_seleccionadas:
         if capa in colores:
@@ -22,14 +24,14 @@ def color_legend(capas_seleccionadas):
 
 # Aplicación principal
 def main():
-    st.title("Mapa Interactivo: Colegios y Cajeros en Valencia")
+    st.title("Mapa Interactivo: Colegios, Cajeros y Centros de Mayores en Valencia")
 
     # Panel izquierdo: Configuración general
     st.sidebar.title("Opciones Generales")
     capas = st.sidebar.multiselect(
         "Selecciona las capas que deseas ver:",
-        options=["Colegios", "Cajeros"],
-        default=["Colegios", "Cajeros"]
+        options=["Colegios", "Cajeros", "Centros de Mayores"],
+        default=["Colegios", "Cajeros", "Centros de Mayores"]
     )
 
     # Panel derecho: Configuración para colegios
@@ -49,6 +51,7 @@ def main():
     # Cargar datos
     colegios_data = load_colegios_data() if "Colegios" in capas and tiene_hijos == "Sí" else None
     cajeros_data = load_atm_data() if "Cajeros" in capas else None
+    centros_mayores_data = load_centros_mayores_data() if "Centros de Mayores" in capas else None
 
     # Filtrar datos de colegios si se selecciona "Sí" en la pregunta inicial
     if colegios_data is not None:
@@ -90,13 +93,24 @@ def main():
         )
         layers.append(cajeros_layer)
 
+    # Crear capa de centros de mayores
+    if centros_mayores_data is not None and not centros_mayores_data.empty:
+        centros_mayores_layer = pdk.Layer(
+            "ScatterplotLayer",
+            data=centros_mayores_data,
+            get_position=["lon", "lat"],
+            get_color=[96, 96, 96, 255],  # Gris oscuro con opacidad máxima
+            radius_min_pixels=5,  # Tamaño constante de los puntos
+            pickable=True
+        )
+        layers.append(centros_mayores_layer)
+
     # Configurar el tooltip dinámico
     tooltip = {
         "html": """
-        <b>Nombre o Modelo:</b> {nombre_centro}{modelo}<br>
-        <b>Dirección:</b> {direccion}<br>
-        <b>Barrio o Municipio:</b> {barrio}{municipio}<br>
-        <b>Régimen:</b> {regimen}
+        <b>Nombre o Modelo:</b> {nombre}<br>
+        <b>Teléfono:</b> {telefono}<br>
+        <b>Código de Vía:</b> {codvia}<br>
         """,
         "style": {"backgroundColor": "black", "color": "white"}
     }
