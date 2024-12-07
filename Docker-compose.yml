@@ -11,7 +11,7 @@ services:
     volumes:
       - postgres:/data/postgres
     ports:
-      - "5432:5432"
+      - "5432:5432"  # Expone PostgreSQL en el puerto 5432
     restart: unless-stopped
     networks:
       - app-network
@@ -24,20 +24,36 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
     volumes:
       - pgadmin:/var/lib/pgadmin
-      - ./pgadmin-servers.json:/pgadmin4/servers.json
+      - ./pgadmin-servers.json:/pgadmin4/servers.json  # Monta el archivo JSON con los servidores
     ports:
-      - "5050:80"
+      - "5050:80"  # Expone PgAdmin en el puerto 5050
     restart: unless-stopped
     networks:
       - app-network
-    entrypoint: >
-      sh -c "sleep 10 &&
-      /entrypoint.sh"
+
+  app:
+    container_name: app_container
+    build:
+      context: .
+      dockerfile: Dockerfile  # Usa el Dockerfile para construir la imagen
+    depends_on:
+      - postgres  # Asegura que PostgreSQL esté activo antes de iniciar este servicio
+    environment:
+      # Variables de entorno para la conexión a PostgreSQL
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: data_project
+      DB_USER: postgres
+      DB_PASSWORD: Welcome01
+    networks:
+      - app-network
+    volumes:
+      - .:/app  # Sincroniza la carpeta local con el contenedor
+    command: python main.py  # Ejecuta el script principal automáticamente
 
 volumes:
-  postgres:
-  pgadmin:
+  postgres:  # Volumen para persistir los datos de PostgreSQL
+  pgadmin:   # Volumen para persistir la configuración de PgAdmin
 
 networks:
-  app-network:
-    driver: bridge
+  app-network:  # Red compartida para todos los servicios

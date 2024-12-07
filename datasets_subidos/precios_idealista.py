@@ -3,7 +3,7 @@ import pandas as pd
 
 # Configuración de la conexión a PostgreSQL
 POSTGRES_CONFIG = {
-    "host": "localhost",
+    "host": "postgres",
     "port": 5432,
     "database": "data_project",
     "user": "postgres",
@@ -33,7 +33,7 @@ def main():
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS public."idealista" (
             objectid SERIAL PRIMARY KEY,
-            geo_point_2d GEOGRAPHY,
+            geo_point_2d GEOGRAPHY(POINT, 4326),
             geo_shape GEOMETRY,
             coddistbar INTEGER,
             barrio VARCHAR(255),
@@ -79,7 +79,7 @@ def main():
             # Validación de geometrías
             point_wkt = None
             if geo_point_2d and isinstance(geo_point_2d, str):
-                lon, lat = map(float, geo_point_2d.strip("[]").split(","))
+                lat, lon = map(float, geo_point_2d.split(","))
                 point_wkt = f"POINT({lon} {lat})"
             geojson_str = geo_shape if isinstance(geo_shape, str) else None
 
