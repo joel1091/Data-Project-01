@@ -1,6 +1,5 @@
 import psycopg2
-import requests
-import json
+import pandas as pd
 
 # Configuración de la conexión a PostgreSQL
 POSTGRES_CONFIG = {
@@ -11,8 +10,8 @@ POSTGRES_CONFIG = {
     "password": "Welcome01"
 }
 
-# URL del archivo JSON
-JSON_URL = "https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/precio-de-compra-en-idealista/records?select=*&limit=88"
+# URL del archivo CSV
+CSV_URL = "https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/precio-de-compra-en-idealista/exports/csv?lang=es&timezone=Europe%2FBerlin&use_labels=true&delimiter=%3B"
 
 def main():
     try:
@@ -33,7 +32,7 @@ def main():
         print("Creando tabla idealista...")
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS public."idealista" (
-            objectid INTEGER,
+            objectid SERIAL PRIMARY KEY,
             geo_point_2d GEOGRAPHY,
             geo_shape GEOMETRY,
             coddistbar INTEGER,
@@ -50,65 +49,55 @@ def main():
         """)
         print("Tabla idealista creada exitosamente o ya existe.")
 
-        # Descargar los datos desde la URL
-        print("Descargando datos desde la URL...")
-        response = requests.get(JSON_URL)
-        if response.status_code != 200:
-            print(f"Error al descargar los datos: {response.status_code}")
+        # Descargar los datos desde el archivo CSV
+        print("Descargando datos desde el archivo CSV...")
+        data = pd.read_csv(CSV_URL, delimiter=";")
+
+        # Verificar la estructura del CSV
+        if data.empty:
+            print("El archivo CSV está vacío o no contiene datos válidos.")
             return
         
-        data = response.json()
-        if not isinstance(data, dict) or "records" not in data:
-            print(f"Estructura del JSON no esperada: {data.keys() if isinstance(data, dict) else type(data)}")
-            return
-        
-        registros = data["records"]
-        print(f"Datos descargados correctamente. Número de registros: {len(registros)}")
+        print(f"Datos descargados correctamente. Número de registros: {len(data)}")
 
-        # Insertar datos en la tabla
-        for item in registros:
-            fields = item.get("fields", {})
-            if not fields:
-                print(f"Advertencia: Registro sin campos válidos: {item}")
-                continue
-
+        # Iterar sobre las filas del DataFrame
+        for index, row in data.iterrows():
             # Extracción segura de los campos
-            objectid = fields.get("_id")
-            geo_point_2d = fields.get("geo_point_2d")
-            geo_shape = fields.get("geo_shape", {}).get("geometry", None)
-            coddistbar = fields.get("coddistbar")
-            barrio = fields.get("barrio")
-            codbarrio = fields.get("codbarrio")
-            coddistrit = fields.get("coddistrit")
-            distrito = fields.get("distrito")
-            precio_2022_euros_m2 = fields.get("precio_2022_euros_m2")
-            precio_2010_euros_m2 = fields.get("precio_2010_euros_m2")
-            max_historico_euros_m2 = fields.get("max_historico_euros_m2")
-            ano_max_hist = fields.get("ano_max_hist")
-            fecha_creacion = fields.get("fecha_creacion")
+            geo_point_2d = row["Geo Point"]
+            geo_shape = row["Geo Shape"]
+            coddistbar = row["coddistbar"]
+            barrio = row["BARRIO"]
+            codbarrio = row["codbarrio"]
+            coddistrit = row["coddistrit"]
+            distrito = row["DISTRITO"]
+            precio_2022_euros_m2 = row["Precio_2022 (Euros/m2)"]
+            precio_2010_euros_m2 = row["Precio_2010 (Euros/m2)"]
+            max_historico_euros_m2 = row["Max_historico (Euros/m2)"]
+            ano_max_hist = row["Año_Max_Hist"]
+            fecha_creacion = row["Fecha_creacion"]
 
             # Validación de geometrías
             point_wkt = None
-            if geo_point_2d and isinstance(geo_point_2d, list) and len(geo_point_2d) == 2:
-                lon, lat = geo_point_2d
+            if geo_point_2d and isinstance(geo_point_2d, str):
+                lon, lat = map(float, geo_point_2d.strip("[]").split(","))
                 point_wkt = f"POINT({lon} {lat})"
-            geojson_str = json.dumps(geo_shape) if geo_shape else None
+            geojson_str = geo_shape if isinstance(geo_shape, str) else None
 
             # Depuración: Imprimir datos a insertar
-            print(f"Procesando registro: objectid={objectid}, barrio={barrio}, distrito={distrito}")
+            print(f"Procesando registro: barrio={barrio}, distrito={distrito}")
 
             # Intentar la inserción en la base de datos
             try:
                 cursor.execute("""
                 INSERT INTO public."idealista" 
-                (objectid, geo_point_2d, geo_shape, coddistbar, barrio, codbarrio, coddistrit, distrito, 
+                (geo_point_2d, geo_shape, coddistbar, barrio, codbarrio, coddistrit, distrito, 
                  precio_2022_euros_m2, precio_2010_euros_m2, max_historico_euros_m2, ano_max_hist, fecha_creacion) 
-                VALUES (ST_GeogFromText(%s), ST_GeomFromGeoJSON(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (ST_GeogFromText(%s), ST_GeomFromGeoJSON(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (point_wkt, geojson_str, coddistbar, barrio, codbarrio, coddistrit, distrito,
                       precio_2022_euros_m2, precio_2010_euros_m2, max_historico_euros_m2, ano_max_hist, fecha_creacion))
                 print(f"Insertado registro con barrio={barrio}, distrito={distrito}")
             except Exception as e:
-                print(f"Error al insertar registro con objectid={objectid}: {e}")
+                print(f"Error al insertar registro con barrio={barrio}: {e}")
 
         print("Todos los datos fueron procesados correctamente.")
 
