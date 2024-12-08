@@ -35,7 +35,7 @@ def load_discapacidad_data():
         codvia AS direccion,  -- Dirección (Código de vía)
         numportal AS numero,  -- Número del portal
         telefono  -- Teléfono
-    FROM "discapacitat-discapacidad";  -- Tabla llamada con comillas dobles
+    FROM "discapacitados";  -- Tabla llamada con comillas dobles
     """
     try:
         data = pd.read_sql_query(query, conn)

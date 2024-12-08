@@ -37,7 +37,7 @@ def main():
 
         # Crear la tabla si no existe
         cursor.execute("""
-        CREATE TABLE IF NOT EXISTS public."discapacitat-discapacidad" (
+        CREATE TABLE IF NOT EXISTS public."discapacitados" (
             objectid INTEGER,
             equipamient VARCHAR(255),
             x INTEGER,
@@ -87,7 +87,7 @@ def main():
 
             # Insertar registro en la tabla
             cursor.execute("""
-            INSERT INTO public."discapacitat-discapacidad" 
+            INSERT INTO public."discapacitados" 
             (objectid, equipamient, x, y, identifica, codvia, numportal, telefono, geo_shape, geo_point_2d) 
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, ST_GeomFromGeoJSON(%s), ST_GeogFromText(%s))
             """, (objectid, equipamient, x, y, identifica, codvia, numportal, telefono, geojson_str, point_wkt))
