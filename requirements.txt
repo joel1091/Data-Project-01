@@ -1,8 +1,13 @@
+ast
+colegios
+config
+discapacidad
+geopandas
+idealista
 pandas
-requests
-psycopg2-binary
-sqlalchemy
-streamlit  # Corregido desde "stremalit"
-folium
-streamlit-folium
 psycopg2
+pydeck
+requests
+shapely
+streamlit
+vulnerabilidad_barrios
