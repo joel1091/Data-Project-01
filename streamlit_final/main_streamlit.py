@@ -13,6 +13,7 @@ from colegios import load_data as load_colegios_data
 from discapacidad import load_discapacidad_data
 from ruido import load_ruido_data, get_ruido_color  
 from hospitales import load_hospitales_data
+from fgv_estaciones import load_fgv_estaciones_data 
 
 # 🌈 Función para calcular el color del precio
 def calculate_price_color(price, min_price, max_price):
@@ -39,6 +40,12 @@ def main():
     incluir_colegios = st.sidebar.radio("¿Incluir colegios?", ("No", "Sí")) == "Sí"
     incluir_discapacidad = st.sidebar.radio("¿Incluir centros de discapacidad?", ("No", "Sí")) == "Sí"
     incluir_hospitales = st.sidebar.radio("¿Incluir hospitales?", ("No", "Sí")) == "Sí"
+
+        # 🔧 Filtro de tipo de colegio
+    tipo_colegio = st.sidebar.selectbox(
+        "Selecciona el tipo de colegio a visualizar:",
+        ["Indiferente", "PÚBLICO", "CONCERTADO", "PRIVADO"]
+    )
 
     layers = []
     visible_zone = None
@@ -144,22 +151,29 @@ def main():
             )
             layers.append(hospitales_layer)
 
-    # 🗂️ 4️⃣ Cargar los datos de Colegios
+    # 🗂️ 2️⃣ Cargar los datos de Colegios
     if incluir_colegios and visible_zone:
         colegios_data = load_colegios_data()
         if not colegios_data.empty:
-            colegios_data = gpd.GeoDataFrame(colegios_data, geometry=[Point(xy) for xy in zip(colegios_data['lon'], colegios_data['lat'])])
+            colegios_data = gpd.GeoDataFrame(
+                colegios_data, geometry=[Point(xy) for xy in zip(colegios_data['lon'], colegios_data['lat'])]
+            )
             colegios_data = colegios_data[colegios_data.geometry.within(visible_zone)]
 
-            colegios_layer = pdk.Layer(
-                "ScatterplotLayer",
-                data=colegios_data,
-                get_position=["lon", "lat"],
-                get_color=[0, 0, 255], 
-                radius_min_pixels=6,
-                pickable=True
-            )
-            layers.append(colegios_layer)
+            # ✅ Filtro por tipo de colegio en la columna `regimen`
+            if tipo_colegio != "Indiferente":
+                colegios_data = colegios_data[colegios_data['regimen'].str.strip().str.upper() == tipo_colegio]
+
+            if not colegios_data.empty:
+                colegios_layer = pdk.Layer(
+                    "ScatterplotLayer",
+                    data=colegios_data,
+                    get_position=["lon", "lat"],
+                    get_color=[0, 0, 255],  # Azul para todos los colegios
+                    radius_min_pixels=6,
+                    pickable=True
+                )
+                layers.append(colegios_layer)
 
     # 🗂️ 5️⃣ Cargar los datos de Centros de Discapacidad
     if incluir_discapacidad and visible_zone:
