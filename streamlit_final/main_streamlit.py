@@ -11,11 +11,18 @@ from idealista import load_idealista_data
 from vulnerabilidad_barrios import load_vulnerabilidad_barrios_data
 from colegios import load_data as load_colegios_data
 from discapacidad import load_discapacidad_data
-from ruido import load_ruido_data, get_ruido_color  # 🔥 Importación de la función de ruido
+from ruido import load_ruido_data, get_ruido_color  
+from hospitales import load_hospitales_data
 
 # 🌈 Función para calcular el color del precio
 def calculate_price_color(price, min_price, max_price):
     norm = (price - min_price) / (max_price - min_price)
+    r = int(255 * norm)
+    g = int(255 * (1 - norm))
+    return [r, g, 0, 150]  # Transparencia de 150
+# 🌈 Función para calcular el color de la vulnerabilidad
+def calculate_vulnerability_color(index, min_val, max_val):
+    norm = (index - min_val) / (max_val - min_val)
     r = int(255 * norm)
     g = int(255 * (1 - norm))
     return [r, g, 0, 150]  # Transparencia de 150
@@ -31,6 +38,7 @@ def main():
     incluir_ruido = st.sidebar.radio("¿Incluir ruido?", ("No", "Sí")) == "Sí"
     incluir_colegios = st.sidebar.radio("¿Incluir colegios?", ("No", "Sí")) == "Sí"
     incluir_discapacidad = st.sidebar.radio("¿Incluir centros de discapacidad?", ("No", "Sí")) == "Sí"
+    incluir_hospitales = st.sidebar.radio("¿Incluir hospitales?", ("No", "Sí")) == "Sí"
 
     layers = []
     visible_zone = None
@@ -69,12 +77,36 @@ def main():
                     data=filtered_precios,
                     get_fill_color="color",
                     get_line_color=[0, 0, 0],
-                    pickable=True,
-                    get_tooltip=True
+                    pickable=True
                 )
                 layers.append(precios_layer)
+    
+    # 🗂️ 2️⃣ Cargar los datos de vulnerabilidad de barrios (solo donde hay precios visibles)
+    if incluir_vulnerabilidad and visible_zone:
+        vulnerabilidad_data = load_vulnerabilidad_barrios_data()
+        if not vulnerabilidad_data.empty:
+            vulnerabilidad_data['geometry'] = vulnerabilidad_data['geometry'].apply(json.loads)
+            vulnerabilidad_data = gpd.GeoDataFrame(vulnerabilidad_data, geometry=vulnerabilidad_data['geometry'].apply(shape))
+            
+            vulnerabilidad_data = vulnerabilidad_data[vulnerabilidad_data.geometry.intersects(visible_zone)]
 
-    # 🗂️ 2️⃣ Cargar los datos de Ruido (solo en la zona de precios)
+            min_val = vulnerabilidad_data['ind_global'].min()
+            max_val = vulnerabilidad_data['ind_global'].max()
+
+            vulnerabilidad_data['color'] = vulnerabilidad_data['ind_global'].apply(
+                lambda x: calculate_vulnerability_color(x, min_val, max_val)
+            )
+
+            vulnerabilidad_layer = pdk.Layer(
+                "GeoJsonLayer",
+                data=vulnerabilidad_data,
+                get_fill_color="color",
+                get_line_color=[0, 0, 0],
+                pickable=True
+            )
+            layers.append(vulnerabilidad_layer)
+
+    # 🗂️ 2️⃣ Cargar los datos de Ruido
     if incluir_ruido and visible_zone:
         ruido_data = load_ruido_data()
         if not ruido_data.empty:
@@ -91,11 +123,28 @@ def main():
                 get_fill_color="color",
                 get_line_color=[0, 0, 0],
                 pickable=True,
-                opacity=0.5 
+                opacity=0.5
             )
             layers.append(ruido_layer)
 
-    # 🗂️ 3️⃣ Cargar los datos de Colegios
+    # 🗂️ 3️⃣ Cargar los datos de Hospitales
+    if incluir_hospitales and visible_zone:
+        hospitales_data = load_hospitales_data()
+        if not hospitales_data.empty:
+            hospitales_data = gpd.GeoDataFrame(hospitales_data, geometry=[Point(xy) for xy in zip(hospitales_data['lon'], hospitales_data['lat'])])
+            hospitales_data = hospitales_data[hospitales_data.geometry.within(visible_zone)]
+
+            hospitales_layer = pdk.Layer(
+                "ScatterplotLayer",
+                data=hospitales_data,
+                get_position=["lon", "lat"],
+                get_color=[255, 0, 0], 
+                radius_min_pixels=10,
+                pickable=True
+            )
+            layers.append(hospitales_layer)
+
+    # 🗂️ 4️⃣ Cargar los datos de Colegios
     if incluir_colegios and visible_zone:
         colegios_data = load_colegios_data()
         if not colegios_data.empty:
@@ -108,12 +157,11 @@ def main():
                 get_position=["lon", "lat"],
                 get_color=[0, 0, 255], 
                 radius_min_pixels=6,
-                pickable=True,
-                get_tooltip=True
+                pickable=True
             )
             layers.append(colegios_layer)
 
-    # 🗂️ 4️⃣ Cargar los datos de Centros de Discapacidad
+    # 🗂️ 5️⃣ Cargar los datos de Centros de Discapacidad
     if incluir_discapacidad and visible_zone:
         discapacidad_data = load_discapacidad_data()
         if not discapacidad_data.empty:
@@ -126,8 +174,7 @@ def main():
                 get_position=["lon", "lat"],
                 get_color=[128, 0, 128], 
                 radius_min_pixels=6,
-                pickable=True,
-                get_tooltip=True
+                pickable=True
             )
             layers.append(discapacidad_layer)
 
@@ -138,20 +185,10 @@ def main():
         pitch=0
     )
 
-    tooltip = {
-        "html": """
-        <b>Nombre del centro:</b> {nombre}<br>
-        <b>Dirección:</b> {direccion}<br>
-        <b>Tipo de centro:</b> {tipo_centro}<br>
-        """,
-        "style": {"backgroundColor": "steelblue", "color": "white", "fontSize": "12px"}
-    }
-
     r = pdk.Deck(
         layers=layers,
         initial_view_state=view_state,
-        map_style="mapbox://styles/mapbox/streets-v11",
-        tooltip=tooltip
+        map_style="mapbox://styles/mapbox/streets-v11"
     )
 
     st.pydeck_chart(r)
