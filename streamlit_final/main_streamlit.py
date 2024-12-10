@@ -2,6 +2,7 @@ import streamlit as st
 import pydeck as pdk
 import geopandas as gpd
 import pandas as pd
+import matplotlib.pyplot as plt
 from shapely.geometry import Point, shape
 import json
 
@@ -10,8 +11,9 @@ from idealista import load_idealista_data
 from vulnerabilidad_barrios import load_vulnerabilidad_barrios_data
 from colegios import load_data as load_colegios_data
 from discapacidad import load_discapacidad_data
-from ruido import load_ruido_data, get_ruido_color
+from ruido import load_ruido_data, get_ruido_color  
 from hospitales import load_hospitales_data
+from fgv_estaciones import load_fgv_estaciones_data 
 
 # 🌈 Función para calcular el color del precio
 def calculate_price_color(price, min_price, max_price):
@@ -19,7 +21,6 @@ def calculate_price_color(price, min_price, max_price):
     r = int(255 * norm)
     g = int(255 * (1 - norm))
     return [r, g, 0, 150]  # Transparencia de 150
-
 # 🌈 Función para calcular el color de la vulnerabilidad
 def calculate_vulnerability_color(index, min_val, max_val):
     norm = (index - min_val) / (max_val - min_val)
@@ -33,7 +34,7 @@ def main():
 
     # 🔧 Opciones de Visualización
     st.sidebar.title("🔧 Incluir las siguientes capas:")
-    incluir_precios = st.sidebar.radio("¿Incluir precios por zonas?", ("No", "Sí")) == "Sí"
+    incluir_precios = True
     incluir_vulnerabilidad = st.sidebar.radio("¿Incluir vulnerabilidad de barrios?", ("No", "Sí")) == "Sí"
     incluir_ruido = st.sidebar.radio("¿Incluir ruido?", ("No", "Sí")) == "Sí"
 
@@ -55,69 +56,117 @@ def main():
     layers = []
     visible_zone = None
 
+
     # 🗂️ 1️⃣ Cargar los datos de Precios de Idealista
-    if incluir_precios:
-        precios_data = load_idealista_data()
-        if not precios_data.empty:
-            precios_data['geometry'] = precios_data['geometry'].apply(json.loads)
-            precios_data = gpd.GeoDataFrame(precios_data, geometry=precios_data['geometry'].apply(shape))
+    precios_data = load_idealista_data()
+    if not precios_data.empty:
+        precios_data['geometry'] = precios_data['geometry'].apply(json.loads)
+        precios_data = gpd.GeoDataFrame(precios_data, geometry=precios_data['geometry'].apply(shape))
 
-            min_price = int(precios_data['precio_2022_euros_m2'].min())
-            max_price = int(precios_data['precio_2022_euros_m2'].max())
+        min_price = int(precios_data['precio_2022_euros_m2'].min())
+        max_price = int(precios_data['precio_2022_euros_m2'].max())
+        
+        min_selected, max_selected = st.sidebar.slider(
+            "Selecciona el rango de precios (€ por m²):",
+            min_value=min_price,
+            max_value=max_price,
+            value=(min_price, max_price)
+        )
 
-            min_selected, max_selected = st.sidebar.slider(
-                "Selecciona el rango de precios (€ por m²):",
-                min_value=min_price,
-                max_value=max_price,
-                value=(min_price, max_price)
+        filtered_precios = precios_data[
+            (precios_data['precio_2022_euros_m2'] >= min_selected) & 
+            (precios_data['precio_2022_euros_m2'] <= max_selected)
+        ]
+
+        if not filtered_precios.empty:
+            visible_zone = filtered_precios.unary_union
+
+            filtered_precios['color'] = filtered_precios['precio_2022_euros_m2'].apply(
+                lambda x: calculate_price_color(x, min_price, max_price)
             )
 
-            filtered_precios = precios_data[
-                (precios_data['precio_2022_euros_m2'] >= min_selected) &
-                (precios_data['precio_2022_euros_m2'] <= max_selected)
-            ]
+            precios_layer = pdk.Layer(
+                "GeoJsonLayer",
+                data=filtered_precios,
+                get_fill_color="color",
+                get_line_color=[0, 0, 0],
+                pickable=True
+            )
+            layers.append(precios_layer)
 
-            if not filtered_precios.empty:
-                visible_zone = filtered_precios.unary_union
 
-                filtered_precios['color'] = filtered_precios['precio_2022_euros_m2'].apply(
-                    lambda x: calculate_price_color(x, min_price, max_price)
-                )
+    # 🗂️ 2️⃣ Cargar los datos de vulnerabilidad
+    if incluir_vulnerabilidad and visible_zone:
+        vulnerabilidad_data = load_vulnerabilidad_barrios_data()
+        if not vulnerabilidad_data.empty:
+            vulnerabilidad_data['geometry'] = vulnerabilidad_data['geometry'].apply(json.loads)
+            vulnerabilidad_data = gpd.GeoDataFrame(vulnerabilidad_data, geometry=vulnerabilidad_data['geometry'].apply(shape))
+            
+            vulnerabilidad_data = vulnerabilidad_data[vulnerabilidad_data.geometry.intersects(visible_zone)]
 
-                precios_layer = pdk.Layer(
-                    "GeoJsonLayer",
-                    data=filtered_precios,
-                    get_fill_color="color",
-                    get_line_color=[0, 0, 0],
-                    pickable=True
-                )
-                layers.append(precios_layer)
+            min_val = vulnerabilidad_data['ind_global'].min()
+            max_val = vulnerabilidad_data['ind_global'].max()
 
-    # 🗂️ 2️⃣ Cargar los datos de Hospitales
+            vulnerabilidad_data['color'] = vulnerabilidad_data['ind_global'].apply(
+                lambda x: calculate_vulnerability_color(x, min_val, max_val)
+            )
+
+            vulnerabilidad_layer = pdk.Layer(
+                "GeoJsonLayer",
+                data=vulnerabilidad_data,
+                get_fill_color="color",
+                get_line_color=[0, 0, 0],
+                pickable=True
+            )
+            layers.append(vulnerabilidad_layer)
+
+
+    # 🗂️ 3️⃣ Cargar los datos de Ruido
+    if incluir_ruido and visible_zone:
+        ruido_data = load_ruido_data()
+        if not ruido_data.empty:
+            ruido_data['geometry'] = ruido_data['geometry'].apply(json.loads)
+            ruido_data = gpd.GeoDataFrame(ruido_data, geometry=ruido_data['geometry'].apply(shape))
+            
+            ruido_data = ruido_data[ruido_data.geometry.intersects(visible_zone)]
+
+            ruido_data['color'] = ruido_data['gridcode'].apply(get_ruido_color)
+
+            ruido_layer = pdk.Layer(
+                "GeoJsonLayer",
+                data=ruido_data,
+                get_fill_color="color",
+                get_line_color=[0, 0, 0],
+                pickable=True,
+                opacity=0.5
+            )
+            layers.append(ruido_layer)
+
+
+    # 🗂️ 3️⃣ Cargar los datos de Hospitales
     if incluir_hospitales and visible_zone:
         hospitales_data = load_hospitales_data()
         if not hospitales_data.empty:
-            hospitales_data = gpd.GeoDataFrame(
-                hospitales_data, geometry=[Point(xy) for xy in zip(hospitales_data['lon'], hospitales_data['lat'])]
-            )
+            hospitales_data = gpd.GeoDataFrame(hospitales_data, geometry=[Point(xy) for xy in zip(hospitales_data['lon'], hospitales_data['lat'])])
             hospitales_data = hospitales_data[hospitales_data.geometry.within(visible_zone)]
 
-            if not hospitales_data.empty:
-                hospitales_layer = pdk.Layer(
-                    "ScatterplotLayer",
-                    data=hospitales_data,
-                    get_position=["lon", "lat"],
-                    get_color=[255, 0, 0],
-                    radius_min_pixels=10,
-                    pickable=True
-                )
-                layers.append(hospitales_layer)
-            elif indispensable_hospitales:
-                st.warning("No hay hospitales disponibles en la zona seleccionada con el filtro aplicado.")
-                layers = []
-                return
+            hospitales_layer = pdk.Layer(
+                "ScatterplotLayer",
+                data=hospitales_data,
+                get_position=["lon", "lat"],
+                get_color=[255, 0, 0], 
+                radius_min_pixels=10,
+                pickable=True
+            )
+            layers.append(hospitales_layer)
 
-    # 🗂️ 3️⃣ Cargar los datos de Colegios
+    # Si hospitales es indispensable y no hay datos
+    if indispensable_hospitales and (not incluir_hospitales or visible_zone is None):
+        layers = []
+        st.warning("Debes seleccionar una capa de hospitales para continuar.")
+        return
+
+    # 🗂️ 2️⃣ Cargar los datos de Colegios
     if incluir_colegios and visible_zone:
         colegios_data = load_colegios_data()
         if not colegios_data.empty:
@@ -126,6 +175,7 @@ def main():
             )
             colegios_data = colegios_data[colegios_data.geometry.within(visible_zone)]
 
+            # ✅ Filtro por tipo de colegio en la columna `regimen`
             if tipo_colegio != "Indiferente":
                 colegios_data = colegios_data[colegios_data['regimen'].str.strip().str.upper() == tipo_colegio]
 
@@ -134,41 +184,41 @@ def main():
                     "ScatterplotLayer",
                     data=colegios_data,
                     get_position=["lon", "lat"],
-                    get_color=[0, 0, 255],
+                    get_color=[0, 0, 255],  # Azul para todos los colegios
                     radius_min_pixels=6,
                     pickable=True
                 )
                 layers.append(colegios_layer)
-            elif indispensable_colegios:
-                st.warning("No hay colegios disponibles en la zona seleccionada con el filtro aplicado.")
-                layers = []
-                return
+    
+        # Si colegios es indispensable y no hay datos
+    if indispensable_colegios and (not incluir_colegios or visible_zone is None):
+        layers = []
+        st.warning("Debes seleccionar una capa de colegios para continuar.")
+        return
 
-    # 🗂️ 4️⃣ Cargar los datos de Centros de Discapacidad
+    # 🗂️ 5️⃣ Cargar los datos de Centros de Discapacidad
     if incluir_discapacidad and visible_zone:
         discapacidad_data = load_discapacidad_data()
         if not discapacidad_data.empty:
-            discapacidad_data = gpd.GeoDataFrame(
-                discapacidad_data, geometry=[Point(xy) for xy in zip(discapacidad_data['lon'], discapacidad_data['lat'])]
-            )
+            discapacidad_data = gpd.GeoDataFrame(discapacidad_data, geometry=[Point(xy) for xy in zip(discapacidad_data['lon'], discapacidad_data['lat'])])
             discapacidad_data = discapacidad_data[discapacidad_data.geometry.within(visible_zone)]
 
-            if not discapacidad_data.empty:
-                discapacidad_layer = pdk.Layer(
-                    "ScatterplotLayer",
-                    data=discapacidad_data,
-                    get_position=["lon", "lat"],
-                    get_color=[128, 0, 128],
-                    radius_min_pixels=6,
-                    pickable=True
-                )
-                layers.append(discapacidad_layer)
-            elif indispensable_discapacidad:
-                st.warning("No hay centros de discapacidad disponibles en la zona seleccionada con el filtro aplicado.")
-                layers = []
-                return
+            discapacidad_layer = pdk.Layer(
+                "ScatterplotLayer",
+                data=discapacidad_data,
+                get_position=["lon", "lat"],
+                get_color=[128, 0, 128], 
+                radius_min_pixels=6,
+                pickable=True
+            )
+            layers.append(discapacidad_layer)
 
-    # Configuración del mapa
+    # Si discapacidad  es indispensable y no hay datos
+    if indispensable_discapacidad and (not incluir_discapacidad or visible_zone is None):
+        layers = []
+        st.warning("Debes seleccionar una capa de discapacidad para continuar.")
+        return
+
     view_state = pdk.ViewState(
         latitude=39.46975,
         longitude=-0.37739,
