@@ -3,205 +3,294 @@ import pydeck as pdk
 import geopandas as gpd
 import pandas as pd
 from shapely.geometry import Point, shape
-from idealista import load_idealista_data
-from vulnerabilidad_barrios import load_vulnerabilidad_barrios_data
-from colegios import load_data as load_colegios_data, assign_colors
-from discapacidad import load_discapacidad_data  # Asegúrate de tener esta función
 import json
 
+# 🔄 Importar funciones desde los archivos correspondientes
+from idealista import load_idealista_data
+from colegios import load_data as load_colegios_data
+from discapacidad import load_discapacidad_data
+from hospitales import load_hospitales_data
+
+# 🌈 Función para calcular el color del precio
+def calculate_price_color(price, min_price, max_price):
+    norm = (price - min_price) / (max_price - min_price)
+    r = int(255 * norm)
+    g = int(255 * (1 - norm))
+    return [r, g, 0, 150]  # Transparencia de 150
+
+# 🚀 Función principal
 def main():
-    st.title("Mapa Interactivo Valencia")
+    st.title("Mapa Interactivo de Valencia 🗺️")
 
-    # Panel izquierdo: Selección de visualización
-    st.sidebar.title("Opciones de Visualización")
-    opciones_visualizacion = st.sidebar.multiselect(
-        "Selecciona las capas que deseas visualizar:",
-        options=["Precios por Zonas", "Vulnerabilidad de Barrios", "Colegios", "Centros de Discapacidad"],
-        default=["Precios por Zonas", "Vulnerabilidad de Barrios", "Colegios"]
-    )
+    # 🔧 Opciones de Visualización
+    st.sidebar.title("🔧 Incluir las siguientes capas:")
+    incluir_precios = st.sidebar.radio("¿Incluir precios por zonas?", ("No", "Sí")) == "Sí"
+    incluir_colegios = st.sidebar.radio("¿Incluir colegios?", ("No", "Sí")) == "Sí"
+    incluir_discapacidad = st.sidebar.radio("¿Incluir centros de discapacidad?", ("No", "Sí")) == "Sí"
+    incluir_hospitales = st.sidebar.radio("¿Incluir hospitales?", ("No", "Sí")) == "Sí"
 
-    # Elegir qué factor tendrá más peso (Precios o Vulnerabilidad)
-    factor_color = st.sidebar.radio("¿Qué factor prefieres para colorear el mapa?", ("Precios", "Vulnerabilidad"))
-    
-    # Peso para cada factor (se ajusta entre 0 y 1)
-    if factor_color == "Precios":
-        peso_precios = st.sidebar.slider("¿Qué peso tienen los precios? (1 es el máximo)", 0.0, 1.0, 1.0)
-        peso_vulnerabilidad = 1.0 - peso_precios
-    else:
-        peso_vulnerabilidad = st.sidebar.slider("¿Qué peso tiene la vulnerabilidad?", 0.0, 1.0, 1.0)
-        peso_precios = 1.0 - peso_vulnerabilidad
+    indispensable_colegios = st.sidebar.checkbox("Colegios: Indispensable")
+    indispensable_discapacidad = st.sidebar.checkbox("Discapacidad: Indispensable")
+    indispensable_hospitales = st.sidebar.checkbox("Hospitales: Indispensable")
 
-    layers = []
-    visible_geometries = []
+    # Mostrar desplegable de tipos de colegios si está activada la capa de colegios
+    tipo_colegio = None
+    if incluir_colegios:
+        tipo_colegio = st.sidebar.selectbox(
+            "Selecciona el tipo de colegio a visualizar:",
+            ["Todos", "PÚBLICO", "CONCERTADO", "PRIVADO"]
+        )
 
-    # --- Lógica para Precios por Zonas ---
-    if "Precios por Zonas" in opciones_visualizacion:
-        precios_data = load_idealista_data()
-        if not precios_data.empty:
-            precios_data["geometry"] = precios_data["geometry"].apply(json.loads)
-            precios_data = gpd.GeoDataFrame(precios_data, geometry=precios_data["geometry"].apply(shape))
-            min_price = int(precios_data["precio_2022_euros_m2"].min())
-            max_price = int(precios_data["precio_2022_euros_m2"].max())
-            min_selected, max_selected = st.sidebar.slider(
-                "Selecciona el rango de precios (€ por m²):",
-                min_value=min_price,
-                max_value=max_price,
-                value=(min_price, max_price)
-            )
-            filtered_precios = precios_data[
-                (precios_data["precio_2022_euros_m2"] >= min_selected) & 
-                (precios_data["precio_2022_euros_m2"] <= max_selected)
-            ]
-            visible_geometries.append(filtered_precios.geometry)
-            def calculate_price_color(price, vulnerabilidad=None):
-                ratio = (price - min_price) / (max_price - min_price) if max_price > min_price else 0
-                red = int(255 * ratio)
-                green = int(255 * (1 - ratio))
-                return [red, green, 0, 150]
-            
-            filtered_precios["color"] = filtered_precios["precio_2022_euros_m2"].apply(
-                lambda x: calculate_price_color(x)
-            )
-            precios_layer = pdk.Layer(
-                "GeoJsonLayer",
-                data=filtered_precios,
-                get_fill_color="color",
-                get_line_color=[0, 0, 0],
-                pickable=True,
-            )
-            layers.append(precios_layer)
+    # Dividir la página en columnas con proporciones ajustadas
+    col1, col2 = st.columns([6, 2])  # 6/7 para el mapa y 1/7 para la leyenda
 
-    # --- Lógica para Vulnerabilidad de Barrios ---
-    if "Vulnerabilidad de Barrios" in opciones_visualizacion:
-        vulnerabilidad_data = load_vulnerabilidad_barrios_data()
-        if not vulnerabilidad_data.empty:
-            vulnerabilidad_data["geometry"] = vulnerabilidad_data["geometry"].apply(json.loads)
-            vulnerabilidad_data = gpd.GeoDataFrame(vulnerabilidad_data, geometry=vulnerabilidad_data["geometry"].apply(shape))
-            considerar_vulnerabilidad = st.sidebar.radio(
-                "¿Quieres tener en cuenta la vulnerabilidad del barrio?",
-                ("No", "Sí")
-            )
-            if considerar_vulnerabilidad == "Sí":
-                min_vulnerability = float(vulnerabilidad_data["ind_global"].min())
-                max_vulnerability = float(vulnerabilidad_data["ind_global"].max())
-                min_selected_vul, max_selected_vul = st.sidebar.slider(
-                    "Selecciona el rango de vulnerabilidad:",
-                    min_value=round(min_vulnerability, 2),
-                    max_value=round(max_vulnerability, 2),
-                    value=(round(min_vulnerability, 2), round(max_vulnerability, 2)),
-                    step=0.01
+    with col1:
+        layers = []
+        visible_zone = None
+
+        # 🗂️ 1️⃣ Cargar los datos de Precios de Idealista
+        if incluir_precios:
+            precios_data = load_idealista_data()
+            if not precios_data.empty:
+                precios_data['geometry'] = precios_data['geometry'].apply(json.loads)
+                precios_data = gpd.GeoDataFrame(precios_data, geometry=precios_data['geometry'].apply(shape))
+
+                min_price = int(precios_data['precio_2022_euros_m2'].min())
+                max_price = int(precios_data['precio_2022_euros_m2'].max())
+
+                min_selected, max_selected = st.sidebar.slider(
+                    "Selecciona el rango de precios (€ por m²):",
+                    min_value=min_price,
+                    max_value=max_price,
+                    value=(min_price, max_price)
                 )
-                filtered_vulnerabilidad = vulnerabilidad_data[
-                    (vulnerabilidad_data["ind_global"] >= min_selected_vul) & 
-                    (vulnerabilidad_data["ind_global"] <= max_selected_vul)
+
+                filtered_precios = precios_data[
+                    (precios_data['precio_2022_euros_m2'] >= min_selected) &
+                    (precios_data['precio_2022_euros_m2'] <= max_selected)
                 ]
-                visible_geometries.append(filtered_vulnerabilidad.geometry)
-                def calculate_vulnerability_color(index, price=None):
-                    ratio = (index - min_vulnerability) / (max_vulnerability - min_vulnerability)
-                    red = int(255 * ratio)
-                    green = int(255 * (1 - ratio))
-                    return [red, green, 0, 150]
-                
-                filtered_vulnerabilidad["color"] = filtered_vulnerabilidad["ind_global"].apply(
-                    lambda x: calculate_vulnerability_color(x)
-                )
-                vulnerabilidad_layer = pdk.Layer(
-                    "GeoJsonLayer",
-                    data=filtered_vulnerabilidad,
-                    get_fill_color="color",
-                    get_line_color=[0, 0, 0],
-                    pickable=True,
-                )
-                layers.append(vulnerabilidad_layer)
 
-    # Fusionar geometrías visibles
-    if visible_geometries:
-        visible_geometries = gpd.GeoSeries(pd.concat(visible_geometries, ignore_index=True)).unary_union
+                if not filtered_precios.empty:
+                    # Crear una columna para identificar zonas filtradas con puntos
+                    filtered_precios["has_points"] = True
 
-    # --- Lógica para Centros de Discapacidad ---
-    if "Centros de Discapacidad" in opciones_visualizacion:
-        discapacidad_familiar = st.sidebar.radio("¿Tienes algún discapacitado en la familia?", ("No", "Sí"))
-        if discapacidad_familiar == "Sí":
-            discapacidad_data = load_discapacidad_data()
-            if discapacidad_data is not None and not discapacidad_data.empty:
-                discapacidad_data = gpd.GeoDataFrame(
-                    discapacidad_data, 
-                    geometry=[Point(xy) for xy in zip(discapacidad_data["lon"], discapacidad_data["lat"])]
-                )
-                # Filtrar los centros de discapacidad que están dentro de las zonas visibles
-                if visible_geometries:
-                    discapacidad_data = discapacidad_data[discapacidad_data.geometry.intersects(visible_geometries)]
-                if discapacidad_data.empty:
-                    st.warning("No hay centros de discapacidad disponibles en las zonas visibles.")
-                else:
-                    discapacidad_layer = pdk.Layer(
+                    # Crear lista para acumular puntos de las capas activadas
+                    all_points = []
+
+                    # Colegios
+                    if incluir_colegios:
+                        colegios_data = load_colegios_data()
+                        if not colegios_data.empty:
+                            colegios_data = gpd.GeoDataFrame(
+                                colegios_data, geometry=[Point(xy) for xy in zip(colegios_data['lon'], colegios_data['lat'])]
+                            )
+                            colegios_data["regimen"] = colegios_data["regimen"].str.strip().str.upper()
+                            if tipo_colegio and tipo_colegio != "Todos":
+                                colegios_data = colegios_data[colegios_data["regimen"] == tipo_colegio]
+                            all_points.append(colegios_data)
+
+                    # Centros de discapacidad
+                    if incluir_discapacidad:
+                        discapacidad_data = load_discapacidad_data()
+                        if not discapacidad_data.empty:
+                            discapacidad_data = gpd.GeoDataFrame(
+                                discapacidad_data, geometry=[Point(xy) for xy in zip(discapacidad_data['lon'], discapacidad_data['lat'])]
+                            )
+                            all_points.append(discapacidad_data)
+
+                    # Hospitales
+                    if incluir_hospitales:
+                        hospitales_data = load_hospitales_data()
+                        if not hospitales_data.empty:
+                            hospitales_data = gpd.GeoDataFrame(
+                                hospitales_data, geometry=[Point(xy) for xy in zip(hospitales_data['lon'], hospitales_data['lat'])]
+                            )
+                            all_points.append(hospitales_data)
+
+                    # Si no hay puntos seleccionados, mostrar todas las zonas coloreadas
+                    if not all_points:
+                        visible_zone = filtered_precios.unary_union
+                    else:
+                        # Unir todos los puntos activados
+                        all_points_gdf = gpd.GeoDataFrame(pd.concat(all_points, ignore_index=True))
+
+                        # Verificar intersección de zonas con los puntos
+                        for idx, zone in filtered_precios.iterrows():
+                            if all_points_gdf.geometry.intersects(zone.geometry).any():
+                                filtered_precios.at[idx, "has_points"] = True
+                            else:
+                                filtered_precios.at[idx, "has_points"] = False
+
+                        # Filtrar solo las zonas que tienen puntos
+                        filtered_precios = filtered_precios[filtered_precios["has_points"]]
+                        visible_zone = filtered_precios.unary_union
+
+                    if not filtered_precios.empty:
+                        filtered_precios['color'] = filtered_precios['precio_2022_euros_m2'].apply(
+                            lambda x: calculate_price_color(x, min_price, max_price)
+                        )
+
+                        precios_layer = pdk.Layer(
+                            "GeoJsonLayer",
+                            data=filtered_precios,
+                            get_fill_color="color",
+                            get_line_color=[0, 0, 0],
+                            pickable=True
+                        )
+                        layers.append(precios_layer)
+
+        # 🗂️ 2️⃣ Añadir puntos como capas
+        def filter_and_add_layer(data, color, layer_name, indispensable):
+            """
+            Filtra puntos dentro de las zonas visibles y los añade como una capa.
+            """
+            if visible_zone and not data.empty:
+                filtered_data = data[data.geometry.within(visible_zone)]
+
+                if not filtered_data.empty:
+                    layer = pdk.Layer(
                         "ScatterplotLayer",
-                        data=discapacidad_data,
+                        data=filtered_data,
                         get_position=["lon", "lat"],
-                        get_color=[128, 0, 128],  # Morado
-                        radius_min_pixels=4,
-                        pickable=True,
+                        get_color=color,
+                        radius_min_pixels=6,
+                        pickable=True
                     )
-                    layers.append(discapacidad_layer)
+                    layers.append(layer)
+                elif indispensable:
+                    st.warning(f"No hay {layer_name} disponibles en la zona seleccionada con el filtro aplicado.")
+                    layers.clear()  # Borra las capas si es indispensable
+                    return False
+            return True
 
-    # Cargar y procesar los datos de Colegios
-    if "Colegios" in opciones_visualizacion:
-        tiene_hijos = st.sidebar.radio("¿Tiene hijos en edad de ir al colegio?", ("No", "Sí"))
-        if tiene_hijos == "Sí":
-            colegios_data = load_colegios_data()
-            if colegios_data.empty:
-                st.warning("No se encontraron datos de colegios.")
-            else:
-                colegios_data = gpd.GeoDataFrame(
-                    colegios_data, geometry=[Point(xy) for xy in zip(colegios_data["lon"], colegios_data["lat"])]
+        # Añadir capa de colegios
+        if incluir_colegios:
+            success = filter_and_add_layer(colegios_data, [0, 0, 255], "colegios", indispensable_colegios)
+            if not success:
+                return
+
+        # Añadir capa de discapacidad
+        if incluir_discapacidad:
+            success = filter_and_add_layer(discapacidad_data, [128, 0, 128], "centros de discapacidad", indispensable_discapacidad)
+            if not success:
+                return
+
+        # Añadir capa de hospitales
+        if incluir_hospitales:
+            success = filter_and_add_layer(hospitales_data, [255, 0, 0], "hospitales", indispensable_hospitales)
+            if not success:
+                return
+
+        # Configuración del mapa
+        view_state = pdk.ViewState(
+            latitude=39.46975,
+            longitude=-0.37739,
+            zoom=12,
+            pitch=0
+        )
+
+        r = pdk.Deck(
+            layers=layers,
+            initial_view_state=view_state,
+            map_style="mapbox://styles/mapbox/streets-v11"
+        )
+
+        # Mostrar el mapa
+        st.pydeck_chart(r)
+
+    # Leyenda en la columna derecha
+    with col2:
+        st.markdown("### Leyenda")
+        st.markdown(
+            """
+            <style>
+            .legend ul {
+                list-style-type: none;
+                padding: 0;
+                margin: 0;
+                font-size: 16px;
+                line-height: 1.8;
+            }
+            .legend li {
+                display: flex;
+                align-items: center;
+                margin-bottom: 8px;
+            }
+            .legend span {
+                display: inline-block;
+                width: 16px;
+                height: 16px;
+                margin-right: 8px;
+                border-radius: 50%;
+            }
+            </style>
+            <div class="legend">
+                <ul>
+                    <li><span style="background: rgb(255, 0, 0);"></span> Hospitales</li>
+                    <li><span style="background: rgb(128, 0, 128);"></span> Centros de Discapacidad</li>
+                    <li><span style="background: rgb(0, 0, 255);"></span> Colegios</li>
+                    <li><span style="background: rgba(255, 255, 0, 0.8);"></span> Zonas de Precios</li>
+                </ul>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+# Al final del bloque principal del `main()` añadimos:
+    if incluir_precios:
+        # Inicializar conteo de puntos por barrio y categorías
+        puntos_por_zona = {
+            barrio: {"Colegios": 0, "Hospitales": 0, "Centros de Discapacidad": 0}
+            for barrio in filtered_precios["barrio"]
+        }
+
+        # Calcular puntos por categoría (si hay capas activadas)
+        for _, zona in filtered_precios.iterrows():
+            zona_geom = shape(zona["geometry"])
+
+            # Contar colegios
+            if incluir_colegios and 'colegios_data' in locals() and not colegios_data.empty:
+                colegios_en_zona = colegios_data[colegios_data.geometry.within(zona_geom)]
+                puntos_por_zona[zona["barrio"]]["Colegios"] += len(colegios_en_zona)
+
+            # Contar hospitales
+            if incluir_hospitales and 'hospitales_data' in locals() and not hospitales_data.empty:
+                hospitales_en_zona = hospitales_data[hospitales_data.geometry.within(zona_geom)]
+                puntos_por_zona[zona["barrio"]]["Hospitales"] += len(hospitales_en_zona)
+
+            # Contar centros de discapacidad
+            if incluir_discapacidad and 'discapacidad_data' in locals() and not discapacidad_data.empty:
+                discapacidad_en_zona = discapacidad_data[discapacidad_data.geometry.within(zona_geom)]
+                puntos_por_zona[zona["barrio"]]["Centros de Discapacidad"] += len(discapacidad_en_zona)
+
+        # Crear tabla con los resultados
+        resultados = pd.DataFrame([
+            {
+                "Barrio": barrio,
+                "Distrito": filtered_precios[filtered_precios["barrio"] == barrio]["distrito"].iloc[0],
+                **puntos,
+                "Total": sum(puntos.values())
+            }
+            for barrio, puntos in puntos_por_zona.items()
+        ])
+
+        # Ordenar los resultados y quedarnos con los 3 mejores por el total
+        resultados = resultados.sort_values(by="Total", ascending=False).head(3)
+
+        # Mostrar los resultados
+        if not resultados.empty:
+            st.markdown("### 🏆 Los 3 mejores barrios según tus preferencias:")
+            for i, row in resultados.iterrows():
+                st.markdown(
+                    f"**{i + 1}. Barrio:** {row['Barrio']} (Distrito: {row['Distrito']}) - "
+                    f"**{row['Colegios']} colegios**, **{row['Hospitales']} hospitales**, "
+                    f"**{row['Centros de Discapacidad']} centros de discapacidad**."
                 )
-                tipo_colegio = st.sidebar.selectbox(
-                    "¿Qué tipo de colegio le interesa?",
-                    ("No importa el colegio", "CONCERTADO", "PÚBLICO", "PRIVADO")
-                )
-                if tipo_colegio != "No importa el colegio":
-                    colegios_data = colegios_data[colegios_data["regimen"] == tipo_colegio]
-                if visible_geometries:
-                    colegios_data = colegios_data[colegios_data.geometry.intersects(visible_geometries)]
-                if colegios_data.empty:
-                    st.warning(f"No hay colegios disponibles en las zonas visibles para el tipo seleccionado: {tipo_colegio}")
-                else:
-                    colegios_data = assign_colors(colegios_data)
-                    scatter_layer = pdk.Layer(
-                        "ScatterplotLayer",
-                        data=colegios_data,
-                        get_position=["lon", "lat"],
-                        get_color="color",
-                        radius_min_pixels=4,
-                        pickable=True,
-                    )
-                    layers.append(scatter_layer)
 
-    # Configuración del mapa
-    view_state = pdk.ViewState(
-        latitude=39.46975,
-        longitude=-0.37739,
-        zoom=12,
-        pitch=0
-    )
+            # Mostrar la tabla completa sin el índice
+            st.markdown("### Tabla de los mejores barrios:")
+            st.dataframe(resultados[["Barrio", "Distrito", "Colegios", "Hospitales", "Centros de Discapacidad"]])
 
-    tooltip = {
-        "html": """
-        <b>Centro:</b> {nombre_centro}<br>
-        <b>Dirección:</b> {direccion}<br>
-        <b>Tipo:</b> {regimen}<br>
-        """,
-        "style": {"backgroundColor": "steelblue", "color": "white"}
-    }
-
-    r = pdk.Deck(
-        layers=layers,
-        initial_view_state=view_state,
-        map_style="mapbox://styles/mapbox/streets-v11",
-        tooltip=tooltip
-    )
-
-    st.pydeck_chart(r)
 
 if __name__ == "__main__":
     main()
