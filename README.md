@@ -86,32 +86,28 @@ https://www.youtube.com/watch?v=CrFIJ4mPNnw
 🛠️ Tecnologías Usadas
 
 Tecnología	Uso
-Docker	Contenerización de la aplicación
+Docker		Contenerización de la aplicación
 PostgreSQL	Base de datos relacional
-PostGIS	Extensión para datos espaciales
-Python	Lenguaje de programación
+PostGIS		Extensión para datos espaciales
+Python		Lenguaje de programación
 Streamlit	Interfaz web de la aplicación
-Pandas	Procesamiento de datos CSV
+Pandas		Procesamiento de datos CSV
 Geopandas	Datos geoespaciales
 psycopg2	Conexión de Python con PostgreSQL
 
 📈 Explicación de la Lógica de Carga de Datos
 
 1. Cargar Centros Educativos
-	•	Descarga los datos desde una URL CSV.
-	•	Los datos se limpian y transforman.
-	•	Se almacenan en la base de datos PostgreSQL.
+	•	Descarga los datos desde una URL JSON.
+	•	Los datos se validan y se almacenan en PostgreSQL.
 
 2. Cargar Centros de Mayores
-	•	Descarga los datos desde una URL CSV.
-	•	Los datos se limpian y se validan.
-	•	Se almacenan en PostgreSQL.
+	•	Descarga los datos desde una URL JSON.
+	•	Los datos se validan y se almacenan en PostgreSQL.
 
 3. Cargar Centros de Discapacitados
-	•	Descarga los datos desde una URL CSV.
-	•	Los datos se procesan y se estructuran.
-	•	Se almacenan en PostgreSQL.
-
+	•	Descarga los datos desde una URL JSON.
+	•	Los datos se validan y se almacenan en PostgreSQL.
 🐛 Posibles Errores y Soluciones
 
 Error	Causa	Solución
