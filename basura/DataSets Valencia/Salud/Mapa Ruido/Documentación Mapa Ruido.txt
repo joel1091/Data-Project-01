@@ -1,9 +1,0 @@
-Mapa Ruido:https://valencia.opendatasoft.com/explore/dataset/mapa-soroll-24h-mapa-ruido-24h/export/
-
-CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/mapa-soroll-24h-mapa-ruido-24h/exports/csv?lang=es&timezone=Europe%2FBerlin&use_labels=true&delimiter=%3B
-
-GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/mapa-soroll-24h-mapa-ruido-24h/exports/geojson?lang=es&timezone=Europe%2FBerlin
-
-JSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/mapa-soroll-24h-mapa-ruido-24h/exports/json?lang=es&timezone=Europe%2FBerlin
-
-ESTE DB SE PUEDE ENLAZAR CON LAS PERSONAS MAYORES, QUE SUELEN NECESITAR ZONAS CON MENOS RUIDO YA QUE SON MÁS PROPENSAS A QUE LES MOLESTE

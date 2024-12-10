@@ -1,9 +1,0 @@
-Actividades Infantles: https://valencia.opendatasoft.com/explore/dataset/zones-dactivitats-zonas-de-actividades/export/
- 
-CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/zones-dactivitats-zonas-de-actividades/exports/csv?lang=es&timezone=Europe%2FBerlin&use_labels=true&delimiter=%3B
-
-GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/zones-dactivitats-zonas-de-actividades/exports/geojson?lang=es&timezone=Europe%2FBerlin
-
-JSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/zones-dactivitats-zonas-de-actividades/exports/json?lang=es&timezone=Europe%2FBerlin
-
-ESTE DB SE ENLAZA CON NIÑOS, OBV

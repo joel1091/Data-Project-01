@@ -1,7 +1,0 @@
-Monumentos turísticos: https://valencia.opendatasoft.com/explore/dataset/monuments-turistics-monumentos-turisticos/export/?dataChart=eyJxdWVyaWVzIjpbeyJjb25maWciOnsiZGF0YXNldCI6Im1vbnVtZW50cy10dXJpc3RpY3MtbW9udW1lbnRvcy10dXJpc3RpY29zIiwib3B0aW9ucyI6e319LCJjaGFydHMiOlt7ImFsaWduTW9udGgiOnRydWUsInR5cGUiOiJjb2x1bW4iLCJmdW5jIjoiQVZHIiwieUF4aXMiOiJnaWQiLCJzY2llbnRpZmljRGlzcGxheSI6dHJ1ZSwiY29sb3IiOiIjNjZjMmE1In1dLCJ4QXhpcyI6ImdpZCIsIm1heHBvaW50cyI6NTAsInNvcnQiOiIifV0sInRpbWVzY2FsZSI6IiIsImRpc3BsYXlMZWdlbmQiOnRydWUsImFsaWduTW9udGgiOnRydWV9
-
-CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/monuments-turistics-monumentos-turisticos/exports/csv?lang=es&timezone=Europe%2FBerlin&use_labels=true&delimiter=%3B
-
-GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/monuments-turistics-monumentos-turisticos/exports/geojson?lang=es&timezone=Europe%2FBerlin
-
-JSON-> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/monuments-turistics-monumentos-turisticos/exports/json?lang=es&timezone=Europe%2FBerlin
