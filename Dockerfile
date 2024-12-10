@@ -20,7 +20,10 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar todo el contenido de la aplicación al directorio de trabajo
-COPY . . 
+COPY . .
 
-# Establecer el comando de inicio
-CMD ["python", "main.py"]
+# Exponer el puerto predeterminado de Streamlit
+EXPOSE 8501
+
+# Cambiar a la carpeta `streamlit_final`, esperar 10 segundos y ejecutar Streamlit
+CMD ["bash", "-c", "sleep 10 && cd /app/streamlit_final && streamlit run streamlit.py --server.port=8501 --server.address=0.0.0.0"]

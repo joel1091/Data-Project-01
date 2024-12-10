@@ -1,9 +1,0 @@
-Precio por Fotocasa: https://valencia.opendatasoft.com/explore/dataset/precio-de-compra-en-fotocasa/export/
-
-CSV -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/precio-de-compra-en-fotocasa/exports/csv?lang=es&timezone=Europe%2FBerlin&use_labels=true&delimiter=%3B
-
-GEOJSON -> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/precio-de-compra-en-fotocasa/exports/geojson?lang=es&timezone=Europe%2FBerlin
-
-JSON-> https://valencia.opendatasoft.com/api/explore/v2.1/catalog/datasets/precio-de-compra-en-fotocasa/exports/json?lang=es&timezone=Europe%2FBerlin
-
-LUEGO HAY QUE QUEDARSE CON FOTO CASA O CON IDEALISTA, O HACER ALGUN MODELO DE APROXIMACIÓN
