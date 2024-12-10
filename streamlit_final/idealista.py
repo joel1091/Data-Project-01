@@ -32,6 +32,7 @@ def load_idealista_data():
     SELECT 
         ST_AsGeoJSON(geo_shape) AS geometry,  -- Convertir la geometría a formato GeoJSON
         distrito,  -- Nombre del distrito
+        barrio,  -- Nombre del barrio
         precio_2022_euros_m2  -- Precio en euros por metro cuadrado
     FROM idealista;
     """

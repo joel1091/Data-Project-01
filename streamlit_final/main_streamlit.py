@@ -21,12 +21,15 @@ def calculate_price_color(price, min_price, max_price):
     r = int(255 * norm)
     g = int(255 * (1 - norm))
     return [r, g, 0, 150]  # Transparencia de 150
+
 # 🌈 Función para calcular el color de la vulnerabilidad
 def calculate_vulnerability_color(index, min_val, max_val):
     norm = (index - min_val) / (max_val - min_val)
     r = int(255 * norm)
     g = int(255 * (1 - norm))
     return [r, g, 0, 150]  # Transparencia de 150
+
+
 
 # 🚀 Función principal
 def main():
@@ -47,6 +50,9 @@ def main():
     incluir_hospitales = st.sidebar.radio("¿Incluir hospitales?", ("No", "Sí")) == "Sí"
     indispensable_hospitales = st.sidebar.checkbox("Hospitales: Indispensable")
 
+    incluir_estaciones_fgv = st.sidebar.radio("¿Incluir estaciones FGV?", ("No", "Sí")) == "Sí"
+    indispensable_estaciones_fgv = st.sidebar.checkbox("Estaciones FGV: Indispensable")
+
     # 🔧 Filtro de tipo de colegio
     tipo_colegio = st.sidebar.selectbox(
         "Selecciona el tipo de colegio a visualizar:",
@@ -55,7 +61,6 @@ def main():
 
     layers = []
     visible_zone = None
-
 
     # 🗂️ 1️⃣ Cargar los datos de Precios de Idealista
     precios_data = load_idealista_data()
@@ -93,7 +98,6 @@ def main():
                 pickable=True
             )
             layers.append(precios_layer)
-
 
     # 🗂️ 2️⃣ Cargar los datos de vulnerabilidad
     if incluir_vulnerabilidad and visible_zone:
@@ -213,6 +217,37 @@ def main():
             )
             layers.append(discapacidad_layer)
 
+     # 🗂️ 2️⃣ Cargar los datos de estaciones FGV
+    if incluir_estaciones_fgv and visible_zone:
+        estaciones_data = load_fgv_estaciones_data()
+        if not estaciones_data.empty:
+            # Convertir a GeoDataFrame y crear geometrías de puntos
+            estaciones_gdf = gpd.GeoDataFrame(
+                estaciones_data,
+                geometry=[Point(xy) for xy in zip(estaciones_data['lon'], estaciones_data['lat'])],
+                crs="EPSG:4326"
+            )
+
+            # Filtrar las estaciones que están dentro de la zona visible (visible_zone)
+            estaciones_filtradas = estaciones_gdf[estaciones_gdf.geometry.within(visible_zone)]
+
+            if not estaciones_filtradas.empty:
+                estaciones_layer = pdk.Layer(
+                    "ScatterplotLayer",
+                    data=estaciones_filtradas,
+                    get_position=["lon", "lat"],
+                    get_color=[255, 223, 0],  # Color amarillo
+                    radius_min_pixels=8,
+                    pickable=True
+                )
+                layers.append(estaciones_layer)
+
+            # Si las estaciones son indispensables pero no hay datos
+            elif indispensable_estaciones_fgv:
+                st.warning("No hay estaciones FGV disponibles en la zona seleccionada con el filtro de precios.")
+                layers = []
+                return
+
     # Si discapacidad  es indispensable y no hay datos
     if indispensable_discapacidad and (not incluir_discapacidad or visible_zone is None):
         layers = []
@@ -233,6 +268,67 @@ def main():
     )
 
     st.pydeck_chart(r)
+
+        # 🔎 Agregar leyenda
+    st.markdown("""
+    🟢 **Precios bajos** 🔵 **Colegios** 🟣 **Centros de discapacidad** 🔴 **Hospitales** 🟡 **Estaciones FGV**
+    """)
+# Al final del bloque principal del `main()` añadimos:
+    if incluir_colegios or incluir_discapacidad or incluir_hospitales:
+        # Inicializar conteo de puntos por barrio y categorías
+        puntos_por_zona = {
+            barrio: {"Colegios": 0, "Hospitales": 0, "Centros de Discapacidad": 0}
+            for barrio in filtered_precios["barrio"]
+        }
+
+        # Calcular puntos por categoría (si hay capas activadas)
+        for _, zona in filtered_precios.iterrows():
+            zona_geom = shape(zona["geometry"])
+
+            # Contar colegios
+            if incluir_colegios and 'colegios_data' in locals() and not colegios_data.empty:
+                colegios_en_zona = colegios_data[colegios_data.geometry.within(zona_geom)]
+                puntos_por_zona[zona["barrio"]]["Colegios"] += len(colegios_en_zona)
+
+            # Contar hospitales
+            if incluir_hospitales and 'hospitales_data' in locals() and not hospitales_data.empty:
+                hospitales_en_zona = hospitales_data[hospitales_data.geometry.within(zona_geom)]
+                puntos_por_zona[zona["barrio"]]["Hospitales"] += len(hospitales_en_zona)
+
+            # Contar centros de discapacidad
+            if incluir_discapacidad and 'discapacidad_data' in locals() and not discapacidad_data.empty:
+                discapacidad_en_zona = discapacidad_data[discapacidad_data.geometry.within(zona_geom)]
+                puntos_por_zona[zona["barrio"]]["Centros de Discapacidad"] += len(discapacidad_en_zona)
+
+        # Crear tabla con los resultados
+        resultados = pd.DataFrame([
+            {
+                "Barrio": barrio,
+                "Distrito": filtered_precios[filtered_precios["barrio"] == barrio]["distrito"].iloc[0],
+                **puntos,
+                "Total": sum(puntos.values())
+            }
+            for barrio, puntos in puntos_por_zona.items()
+        ])
+
+        # Ordenar los resultados y quedarnos con los 3 mejores por el total
+        resultados = resultados.sort_values(by="Total", ascending=False).head(3)
+
+        # Mostrar los resultados
+        if not resultados.empty:
+            st.markdown("### 🏆 Los 3 mejores barrios según tus preferencias:")
+            for _, row in resultados.iterrows():
+                st.markdown(
+                    f"El mejor barrio para vivir es {row['Barrio']}, situado en el distrito de {row['Distrito']} con "
+                    f"{row['Colegios']} colegios, {row['Hospitales']} hospitales, "
+                    f"{row['Centros de Discapacidad']} centros de discapacidad."
+                )
+
+            # Mostrar la tabla completa sin el índice
+            st.markdown("### Tabla de los mejores barrios:")
+            st.dataframe(resultados[["Barrio", "Distrito", "Colegios", "Hospitales", "Centros de Discapacidad"]])
+            
+
 
 if __name__ == "__main__":
     main()
