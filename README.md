@@ -22,32 +22,40 @@ La aplicación carga los datos desde archivos CSV remotos y los almacena en una 
 
 ## 🚀 **Cómo Ejecutar el Proyecto**
 1. Clonar el repositorio:
+
    ```bash
    git clone https://github.com/joel1091/Data-Project-01
    cd Data-Project-01
 
-	2.	Configurar el archivo .env:
-
+3.	Configurar el archivo .env:
+```bash
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=Welcome01
 POSTGRES_DB=data_project
+```
 
-
-	3.	Construir la imagen de Docker:
-
+3.	Construir la imagen de Docker:
+```bash
 docker-compose build
+```
 
-
-	4.	Iniciar la aplicación:
-
+4.	Iniciar la aplicación:
+	
+```bash
 docker-compose up
+```
+5.	Acceder a la carpeta y ejecutar el programa
 
+ ```bash
+ cd streamlit_final
+ streamlit run streamlit.py
+ ```
 
-	5.	Ver la aplicación:
+6.	Ver la aplicación:
 Accede a la aplicación en tu navegador en la URL:
-
+```bash
 http://localhost:8501
-
+```
 
 
 📁 Archivos Clave
@@ -62,6 +70,12 @@ docker-compose.yml	Ejecuta los contenedores de PostgreSQL y la app.
 requirements.txt	Dependencias del proyecto.
 
 🎥 Demostración en Video
+
+[Accede desde aquí al video de la demostración de la app](https://www.youtube.com/watch?v=CrFIJ4mPNnw) 
+
+```bash
+https://www.youtube.com/watch?v=CrFIJ4mPNnw
+```
 
 🌐 Descripción de la Interfaz
 	•	Página Principal:
